@@ -22,7 +22,7 @@ jobs:
           cd ~ && mkdir build_tools && mkdir kernel_source
       - name: 安装环境依赖
         run: |
-          cd sudo apt-get update
+          sudo apt-get update
           sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3
       - name: 拉取编译工具链及内核源码
         run: |
