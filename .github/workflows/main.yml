@@ -1,0 +1,120 @@
+name: OP12_Kernel_Build
+
+on: 
+  workflow_dispatch: 
+      inputs:
+        kernel_repo:
+          description: '请输入内核源码仓库地址:'
+            required: true
+        kernel_vendor_repo:
+          description: '请输入内核vendor源码仓库地址:'
+            required: true
+        kernel_devicetrees_repo:
+          description: '请输入内核devicetrees源码仓库地址:'
+            required: true
+
+jobs:
+  build:
+    run-on: ubuntu-latest
+    steps:
+      -name: 创建编译目录
+       run: |
+         cd ~ && mkdir build_tools && mkdir kernel_source
+      -name: 安装环境依赖
+       run: |
+         cd sudo apt-get update
+         sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3
+      -name: 拉取编译工具链及内核源码
+       run: |
+         cd ~/build_tools
+         git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b main-kernel-2026
+         cd ~/kernel_source
+         git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
+         git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
+         git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
+         mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
+         mv android_kernel_oneplus_sm8650-modules sm8650-modules
+      -name: 安装KernelSu_Next
+       run: |
+         cd android_kernel_oneplus_sm8650
+         curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+      -name: 添加DroidSpaces支持
+       run: |
+         wget https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
+         patch -p1 -N -F 3 < 01.6.1%2B_disable_crc_checks_for_lkms.patch
+         wget https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
+         patch -p1 -N -F 3 < 02.fix_restore cgroup file prefix handling .patch
+         wget https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
+         patch -p1 -N -F 3 < 03.5.15+_use_android_abi_padding_for_posix_mqueue.patch
+         wget https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+         patch -p1 -N -F 3 < 04.use_android_abi_padding_for_sysvipc_task_struct.patch
+         echo "CONFIG_SYSCTL=y" > arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_POSIX_MQUEUE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_PID_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_UTS_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IPC_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_SECCOMP=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_SECCOMP_FILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUPS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_MEMCG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUP_SCHED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_FAIR_GROUP_SCHED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUP_FREEZER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_CGROUP_NET_PRIO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_FW_LOADER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_FW_LOADER_USER_HELPER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_VETH=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_BRIDGE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NETFILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NETFILTER_ADVANCED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NF_CONNTRACK=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IP_NF_IPTABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IP_NF_FILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NF_NAT=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IP_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NETFILTER_XT_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NETFILTER_XT_TARGET_TCPMSS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NF_CONNTRACK_NETLINK=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NF_NAT_REDIRECT=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IP_ADVANCED_ROUTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_IP_MULTIPLE_TABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+         
+      -name: 设置环境变量并编译内核
+       run: |
+         make ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- gki_defconfig vendor/oplus/Droidspaces.config vendor/oplus/pineapple_GKI.config
+         make ARCH=arm64 CC=clang CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- -j$(nproc)
+      
+      - name: 制作 AnyKernel3 刷机包
+        run: |
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel
+          cp out/arch/arm64/boot/Image AnyKernel/Image
+          cd AnyKernel
+          # 简单配置（跳过机型检查，自动识别分区）
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
+          zip -r9 ../OnePlus12-CMA-KVM-Kernel.zip *
+          
+      - name: 发布你的成品
+        uses: actions/upload-artifact@v4
+        with:
+          name: Flashable-Kernel-Zip
+          path: OnePlus12-Kernel.zip
+          
