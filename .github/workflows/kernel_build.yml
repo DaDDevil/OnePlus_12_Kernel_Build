@@ -42,10 +42,11 @@ jobs:
          git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
          mv android_kernel_oneplus_sm8650-modules sm8650-modules
-         ls -l
+         ls -l && pwd
       - name: 安装KernelSu_Next
         run: |
-          cd android_kernel_oneplus_sm8650
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          pwd
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
       - name: 添加DroidSpaces支持
         run: |
