@@ -24,12 +24,6 @@ jobs:
          sudo rm -rf /opt/ghc
          sudo rm -rf "/usr/local/share/boost"
          sudo rm -rf /usr/share/swift
-      - name: 开启虚拟内存 (Swap)
-        run: |
-         sudo fallocate -l 4G /swapfile
-         sudo chmod 600 /swapfile
-         sudo mkswap /swapfile
-         sudo swapon /swapfile
       - name: 创建编译目录
         run: |
           cd ~ && mkdir build_tools && mkdir kernel_source
