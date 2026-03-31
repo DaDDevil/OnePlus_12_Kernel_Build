@@ -36,6 +36,7 @@ jobs:
          cd ~/build_tools
          wget https://github.com/ZyCromerZ/Clang/releases/download/23.0.0git-20260130-release/Clang-23.0.0git-20260130.tar.gz
          tar -xvf Clang-23.0.0git-20260130.tar.gz
+         ls -lR
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
