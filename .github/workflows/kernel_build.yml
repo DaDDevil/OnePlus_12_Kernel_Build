@@ -24,6 +24,14 @@ jobs:
          sudo rm -rf /opt/ghc
          sudo rm -rf "/usr/local/share/boost"
          sudo rm -rf /usr/share/swift
+      - name: 创建虚拟交换内存
+         uses: easimon/maximize-build-space@master
+           with:
+           swap-size-mb: 15360 # 设置为 12GB 或更多
+           remove-dotnet: 'true'
+           remove-android: 'true'
+           remove-haskell: 'true'
+
       - name: 创建编译目录
         run: |
           cd ~ && mkdir build_tools && mkdir kernel_source
@@ -115,10 +123,10 @@ jobs:
           echo "CONFIG_HAS_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-
+          echo "CONFIG_LOCALVERSION="-loopcat"" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
       - name: 设置环境变量并编译内核
         run: |
-          ls /home/runner/build_tools/
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
@@ -129,7 +137,7 @@ jobs:
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
           git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel
-          cp out/arch/arm64/boot/Image AnyKernel/Image
+          cp arch/arm64/boot/Image AnyKernel/Image
           cd AnyKernel
           # 简单配置（跳过机型检查，自动识别分区）
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
