@@ -24,6 +24,14 @@ jobs:
          sudo rm -rf /opt/ghc
          sudo rm -rf "/usr/local/share/boost"
          sudo rm -rf /usr/share/swift
+      - name: Set Swap Space
+  # You may pin to the exact commit or the version.
+  # uses: pierotofy/set-swap-space@49819abfb41bd9b44fb781159c033dba90353a7c
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+    # Swap space to create, in Gigabytes.
+          swap-size-gb: 15 # optional, default is 10
+          
       - name: 创建编译目录
         run: |
           cd ~ && mkdir build_tools && mkdir kernel_source
