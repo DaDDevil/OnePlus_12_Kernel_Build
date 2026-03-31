@@ -34,7 +34,8 @@ jobs:
       - name: 拉取编译工具链及内核源码
         run: |
          cd ~/build_tools
-         git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b main-kernel
+         wget https://github.com/PurrrsLitterbox/LLVM-stable/releases/download/llvmorg-22.1.0/clang.tar.zst
+         tar -xf clang.tar.zst
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
@@ -118,9 +119,9 @@ jobs:
 
       - name: 设置环境变量并编译内核
         run: |
-          ls /home/runner/build_tools/linux-x86/clang-r563880c/
+          ls /home/runner/build_tools/
           cd ~/kernel_source/android_kernel_oneplus_sm8650
-          CLANG_BIN=/home/runner/build_tools/linux-x86/clang-r563880c/bin
+          CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           clang --version
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/pineapple_GKI.config vendor/pineapple_GKI.config vendor/oplus/Droidspaces.config
