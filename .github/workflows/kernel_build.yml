@@ -108,8 +108,8 @@ jobs:
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
           pwd
-          find ~/ -name "clang" -type f | head -n 1 | xargs dirname
-          CLANG_BIN=$(find ~/ -name "clang" -type f | head -n 1 | xargs dirname)
+          find /home -name "clang" -type f | head -n 1 | xargs dirname
+          CLANG_BIN=$(find /home -name "clang" -type f | head -n 1 | xargs dirname)
           export PATH=$CLANG_BIN:$PATH
           make ARCH=arm64 CC=clang llvm=1 CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- gki_defconfig vendor/oplus/Droidspaces.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 CC=clang llvm=1 CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- -j$(nproc)
