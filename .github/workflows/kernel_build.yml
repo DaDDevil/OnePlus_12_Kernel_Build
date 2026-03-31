@@ -110,7 +110,12 @@ jobs:
           echo "CONFIG_MODVERSIONS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_MODULES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          
+          echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_HAS_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_LTO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
 
       - name: 设置环境变量并编译内核
         run: |
@@ -119,8 +124,7 @@ jobs:
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           clang --version
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/pineapple_GKI.config
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/pineapple_GKI.config vendor/pineapple_GKI.config vendor/oplus/Droidspaces.config
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
