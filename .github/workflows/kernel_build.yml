@@ -45,6 +45,8 @@ jobs:
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          sed -i 's/<stdbool.h>/<linux\/types.h>/g' drivers/nfc/oplus_nfc/*.[ch]
+          sed -i 's/<walt.h>/"walt.h"/g' kernel/sched/walt/walt_halt.c
           pwd
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
       - name: 添加DroidSpaces支持
