@@ -34,8 +34,7 @@ jobs:
       - name: 拉取编译工具链及内核源码
         run: |
          cd ~/build_tools
-         wget https://github.com/ZyCromerZ/Clang/releases/download/23.0.0git-20260130-release/Clang-23.0.0git-20260130.tar.gz
-         tar -xvf Clang-23.0.0git-20260130.tar.gz
+         git clone --depth=1 https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b main-kernel
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
@@ -45,9 +44,6 @@ jobs:
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          sed -i 's/<stdbool.h>/<linux\/types.h>/g' drivers/nfc/oplus_nfc/*.[ch]
-          sed -i 's/<walt.h>/"walt.h"/g' kernel/sched/walt/walt_halt.c
-          pwd
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
       - name: 添加DroidSpaces支持
         run: |
@@ -122,9 +118,9 @@ jobs:
 
       - name: 设置环境变量并编译内核
         run: |
-          ls /home/runner/build_tools/bin
+          ls /home/runner/build_tools/linux-x86/clang-r563880c/
           cd ~/kernel_source/android_kernel_oneplus_sm8650
-          CLANG_BIN=/home/runner/build_tools/bin
+          CLANG_BIN=/home/runner/build_tools/linux-x86/clang-r563880c/bin
           export PATH=$CLANG_BIN:$PATH
           clang --version
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/pineapple_GKI.config vendor/pineapple_GKI.config vendor/oplus/Droidspaces.config
