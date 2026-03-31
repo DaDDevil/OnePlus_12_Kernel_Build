@@ -36,7 +36,6 @@ jobs:
          cd ~/build_tools
          wget https://github.com/ZyCromerZ/Clang/releases/download/23.0.0git-20260130-release/Clang-23.0.0git-20260130.tar.gz
          tar -xvf Clang-23.0.0git-20260130.tar.gz
-         pwd
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
@@ -56,7 +55,6 @@ jobs:
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/optional/fix-docker-overlay2-on-f2fs.patch
-          ls -l && pwd
           patch -p1 < 'fix-docker-overlay2-on-f2fs.patch'
           patch -p1 < '01.6.1+_disable_crc_checks_for_lkms.patch'
           patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
@@ -106,11 +104,11 @@ jobs:
 
       - name: 设置环境变量并编译内核
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          pwd
-          find /home/runner/build_tools/bin -name "clang" -type f | head -n 1 | xargs dirname
-          CLANG_BIN=$(find /home/runner/build_tools/bin -name "clang" -type f | head -n 1 | xargs dirname)
+          ls /home/runner/build_tools/bin
+          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
+          clang --version
           make ARCH=arm64 CC=clang llvm=1 CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- gki_defconfig vendor/oplus/Droidspaces.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 CC=clang llvm=1 CROSS_COMPILE=aarch64-linux-gnu- CLANG_TRIPLE=aarch64-linux-gnu- -j$(nproc)
       
