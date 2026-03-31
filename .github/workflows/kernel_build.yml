@@ -116,6 +116,7 @@ jobs:
           echo "CONFIG_HAS_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_SCHED_WALT=m" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
 
       - name: 设置环境变量并编译内核
         run: |
