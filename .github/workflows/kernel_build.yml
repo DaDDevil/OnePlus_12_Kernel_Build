@@ -55,7 +55,7 @@ jobs:
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/optional/fix-docker-overlay2-on-f2fs.patch
-          ls -l | grep *.patch
+          ls -l && pwd
           patch -p1 < 'fix-docker-overlay2-on-f2fs.patch'
           patch -p1 < '01.6.1+_disable_crc_checks_for_lkms.patch'
           patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
