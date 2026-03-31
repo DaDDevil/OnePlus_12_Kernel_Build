@@ -119,7 +119,7 @@ jobs:
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           clang --version
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/Droidspaces.config vendor/oplus/pineapple_GKI.config
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
