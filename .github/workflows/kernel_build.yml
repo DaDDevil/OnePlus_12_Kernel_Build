@@ -121,7 +121,7 @@ jobs:
           clang --version
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig vendor/oplus/Droidspaces.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 olddefconfig
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS -j$(nproc)
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
