@@ -120,8 +120,6 @@ jobs:
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LOCALVERSION="-Noevil"" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/gki_defconfig
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
@@ -143,7 +141,7 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           chmod -R 755 .
           chmod 755 tools/busybox-* 2>/dev/null || true
-          cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
