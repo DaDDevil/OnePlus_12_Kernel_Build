@@ -116,7 +116,7 @@ jobs:
           #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULES=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_NONE=n" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_THINLTO=y" >> arch/arm64/configs/gki_defconfig
