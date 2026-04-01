@@ -50,7 +50,7 @@ jobs:
          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
          mv android_kernel_oneplus_sm8650-modules sm8650-modules
          rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
-         echo "-os16-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
+         echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
@@ -68,7 +68,7 @@ jobs:
           patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
           patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
           patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
-          echo "CONFIG_PID_NS=y" > arch/arm64/configs/gki_defconfig
+          echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
@@ -86,9 +86,9 @@ jobs:
           #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_NONE=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
@@ -99,8 +99,7 @@ jobs:
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin gki_defconfig
-          grep -E "CONFIG_LTO|CONFIG_HAS_LTO" .config
-          sleep 10
+          grep -E "CONFIG_*" .config
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
