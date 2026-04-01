@@ -123,7 +123,7 @@ jobs:
           echo "CONFIG_HAS_LTO_CLANG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_LOCALVERSION="-loopcat"" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_LOCALVERSION="-Noevil"" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
       - name: 设置环境变量并编译内核
         run: |
@@ -135,17 +135,25 @@ jobs:
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel
-          cp arch/arm64/boot/Image AnyKernel/Image
-          cd AnyKernel
-          # 简单配置（跳过机型检查，自动识别分区）
+          # 假设你的源码就在当前工作目录（不需要 cd ~/...）
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
+          
+          # 检查 Image 是否真的存在（防御性编程，防止白跑）
+          if [ ! -f ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ]; then
+            echo "错误：找不到编译生成的 Image 文件！"
+            exit 1
+          fi
+          
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/Image
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
-          zip -r9 ../OnePlus12-Kernel.zip *
+          
+          # 将压缩包生成到上一级目录（即 GitHub 工作流的根目录）
+          zip -r9 ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
         uses: actions/upload-artifact@v4
         with:
           name: Flashable-Kernel-Zip
-          path: OnePlus12-Kernel.zip
-          
+          # 现在的路径就在根目录了
+          path: OnePlus12-Kernel.zip         
