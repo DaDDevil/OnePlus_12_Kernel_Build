@@ -12,7 +12,9 @@ on:
         kernel_devicetrees_repo:
             description: '请输入内核devicetrees源码仓库地址:'
             required: true
-
+        kernel_defconfig:
+            description: '请输入你要编译的配置文件:'
+            required: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -131,7 +133,7 @@ jobs:
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           clang --version
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 gki_defconfig
+          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
           make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
