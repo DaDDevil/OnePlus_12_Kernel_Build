@@ -50,10 +50,6 @@ jobs:
          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
          mv android_kernel_oneplus_sm8650-modules sm8650-modules
          rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
-          for f in ~/kernel_source/android_kernel_oneplus_sm8650/scripts/setlocalversion; do
-            sed -i 's/ -dirty//g' "$f"
-            sed -i '$i res=$(echo "$res" | sed '\''s/-dirty//g'\'')' "$f"
-          done
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
@@ -131,8 +127,8 @@ jobs:
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
-          make ARCH=arm66 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }} KCFLAGS+=-O2 KCFLAGS+=-Wno-error
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc) KCFLAGS+=-O2 KCFLAGS+=-Wno-error
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
