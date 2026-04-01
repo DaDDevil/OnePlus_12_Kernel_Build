@@ -50,7 +50,7 @@ jobs:
          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
          mv android_kernel_oneplus_sm8650-modules sm8650-modules
          rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
-         echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
+         echo "-os16-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
@@ -68,49 +68,17 @@ jobs:
           patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
           patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
           patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
-          echo "CONFIG_SYSCTL=y" > arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_POSIX_MQUEUE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_PID_NS=y" > arch/arm64/configs/gki_defconfig
+          echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_PID_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_UTS_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IPC_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_SECCOMP=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_SECCOMP_FILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUPS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_MEMCG=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUP_SCHED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_FAIR_GROUP_SCHED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUP_FREEZER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_CGROUP_NET_PRIO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_FW_LOADER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_FW_LOADER_USER_HELPER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NET_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_VETH=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_BRIDGE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NETFILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NETFILTER_ADVANCED=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NF_CONNTRACK=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IP_NF_IPTABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IP_NF_FILTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NF_NAT=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IP_NF_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NETFILTER_XT_TARGET_MASQUERADE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NETFILTER_XT_TARGET_TCPMSS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NF_CONNTRACK_NETLINK=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NF_NAT_REDIRECT=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IP_ADVANCED_ROUTER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_IP_MULTIPLE_TABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_TRIM_UNUSED_KSYMS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODULE_COMPRESS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
@@ -121,12 +89,18 @@ jobs:
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
+          export LTO=thin
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
+          grep -E "CONFIG_LTO|CONFIG_HAS_LTO" .config
+          sleep 10
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
@@ -141,7 +115,7 @@ jobs:
           cd ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           chmod -R 755 .
-          chmod 755 tools/busybox-* 2>/dev/null || true
+          chmod 755 ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/*
           cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
