@@ -149,11 +149,11 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           
           # 将压缩包生成到上一级目录（即 GitHub 工作流的根目录）
-          zip -r9 ../OnePlus12-Kernel.zip ./*
+          zip -r9 ../OnePlus12-Kernel.zip ~/
           
       - name: 发布你的成品
         uses: actions/upload-artifact@v4
         with:
           name: Flashable-Kernel-Zip
           # 现在的路径就在根目录了
-          path: OnePlus12-Kernel.zip         
+          path: ~/OnePlus12-Kernel.zip         
