@@ -1,0 +1,127 @@
+name: OP12_Kernel_Build
+
+on: 
+  workflow_dispatch: 
+      inputs:
+        kernel_repo:
+            description: '请输入内核源码仓库地址:'
+            required: true
+        kernel_vendor_repo:
+            description: '请输入内核vendor源码仓库地址:'
+            required: true
+        kernel_devicetrees_repo:
+            description: '请输入内核devicetrees源码仓库地址:'
+            required: true
+        kernel_defconfig:
+            description: '请输入你要编译的配置文件:'
+            required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 释放磁盘空间
+        run: |
+         sudo rm -rf /usr/share/dotnet
+         sudo rm -rf /usr/local/lib/android
+         sudo rm -rf /opt/ghc
+         sudo rm -rf "/usr/local/share/boost"
+         sudo rm -rf /usr/share/swift
+      - name: Set Swap Space
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 15
+          
+      - name: 创建编译目录
+        run: |
+          cd ~ && mkdir build_tools && mkdir kernel_source
+      - name: 安装环境依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils
+      - name: 拉取编译工具链及内核源码
+        run: |
+         cd ~/build_tools
+         wget https://github.com/PurrrsLitterbox/LLVM-stable/releases/download/llvmorg-22.1.0/clang.tar.zst
+         tar -xf clang.tar.zst
+         cd ~/kernel_source
+         git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
+         git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
+         git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
+         mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
+         mv android_kernel_oneplus_sm8650-modules sm8650-modules
+         rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
+         echo "-os16-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
+      - name: 安装KernelSu_Next
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+      - name: 添加DroidSpaces支持
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/optional/fix-docker-overlay2-on-f2fs.patch
+          patch -p1 < 'fix-docker-overlay2-on-f2fs.patch'
+          patch -p1 < '01.6.1+_disable_crc_checks_for_lkms.patch'
+          patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
+          patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
+          patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
+          echo "CONFIG_PID_NS=y" > arch/arm64/configs/gki_defconfig
+          echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_NONE=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
+      - name: 设置环境变量并编译内核
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          export LTO=thin
+          CLANG_BIN=/home/runner/build_tools/bin
+          export PATH=$CLANG_BIN:$PATH
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
+          grep -E "CONFIG_LTO|CONFIG_HAS_LTO" .config
+          sleep 10
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
+      - name: 制作 AnyKernel3 刷机包
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
+          if [ ! -f ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ]; then
+            echo "错误：找不到编译生成的 Image 文件！"
+            exit 1
+          fi
+          
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/Image
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
+          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
+          chmod -R 755 .
+          chmod 755 ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/*
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
+          zip -r9y ../OnePlus12-Kernel.zip ./*
+          
+      - name: 发布你的成品
+        uses: actions/upload-artifact@v7
+        with:
+          # 现在的路径就在根目录了
+          path: ~/kernel_source/android_kernel_oneplus_sm8650/OnePlus12-Kernel.zip
+          archive: false
