@@ -119,7 +119,7 @@ jobs:
           echo "CONFIG_LTO_NONE=n" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_THINLTO=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LOCALVERSION="-Noevil"" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/gki_defconfig
       - name: 设置环境变量并编译内核
