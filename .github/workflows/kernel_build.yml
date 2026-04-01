@@ -14,7 +14,7 @@ on:
             required: true
         kernel_defconfig:
             description: '请输入你要编译的配置文件:'
-            required: true
+            required: false
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -90,18 +90,18 @@ jobs:
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           export LTO=thin
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin gki_defconfig
           grep -E "CONFIG_LTO|CONFIG_HAS_LTO" .config
           sleep 10
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
