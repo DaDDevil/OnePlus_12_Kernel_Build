@@ -70,7 +70,7 @@ jobs:
           #echo "CONFIG_SYSCTL=y" > arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_POSIX_MQUEUE=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_PID_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_UTS_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_IPC_NS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
@@ -85,7 +85,7 @@ jobs:
           #echo "CONFIG_CGROUP_FREEZER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_CGROUP_NET_PRIO=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_FW_LOADER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_FW_LOADER_USER_HELPER=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
@@ -110,18 +110,18 @@ jobs:
           #echo "CONFIG_IP_MULTIPLE_TABLES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_TRIM_UNUSED_KSYMS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_MODULE_COMPRESS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          #echo "CONFIG_MODULES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULES=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_THINLTO=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LOCALVERSION="-Noevil"" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          echo "CONFIG_LOCALVERSION="-Noevil"" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_LOCALVERSION_AUTO=n" >> arch/arm64/configs/gki_defconfig
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
