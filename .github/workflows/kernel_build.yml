@@ -27,12 +27,9 @@ jobs:
          sudo rm -rf "/usr/local/share/boost"
          sudo rm -rf /usr/share/swift
       - name: Set Swap Space
-  # You may pin to the exact commit or the version.
-  # uses: pierotofy/set-swap-space@49819abfb41bd9b44fb781159c033dba90353a7c
         uses: pierotofy/set-swap-space@v1.0
         with:
-    # Swap space to create, in Gigabytes.
-          swap-size-gb: 15 # optional, default is 10
+          swap-size-gb: 15
           
       - name: 创建编译目录
         run: |
@@ -121,7 +118,7 @@ jobs:
           echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
-          echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
+          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           #echo "CONFIG_MODULES=y" >> arch/arm64/configs/vendor/oplus/Droidspaces.config
           echo "CONFIG_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
@@ -134,9 +131,8 @@ jobs:
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
-          clang --version
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }}
-          make ARCH=arm64 CC=clang LLVM=1 LLVM_IAS=1 -j$(nproc)
+          make ARCH=arm66 LLVM=1 LLVM_IAS=1 ${{ github.event.inputs.kernel_defconfig }} KCFLAGS+=-O2 KCFLAGS+=-Wno-error
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc) KCFLAGS+=-O2 KCFLAGS+=-Wno-error
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
@@ -151,11 +147,12 @@ jobs:
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           chmod -R 755 .
           chmod 755 tools/busybox-* 2>/dev/null || true
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: OnePlus12-Kernel.zip
           # 现在的路径就在根目录了
-          path: ~/kernel_source/android_kernel_oneplus_sm8650/OnePlus12-Kernel.zip         
+          path: ~/kernel_source/android_kernel_oneplus_sm8650/OnePlus12-Kernel.zip
+          archive: false
