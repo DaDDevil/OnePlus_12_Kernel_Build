@@ -50,6 +50,7 @@ jobs:
          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
          mv android_kernel_oneplus_sm8650-modules sm8650-modules
          rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
+         echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
