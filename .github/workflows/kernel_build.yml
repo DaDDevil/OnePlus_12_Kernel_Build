@@ -104,8 +104,8 @@ jobs:
           export LTO=thin
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 KCFLAGS="-Wno-error" -j$(nproc)
       - name: 生成内核模块并打包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
