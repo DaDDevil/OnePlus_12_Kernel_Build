@@ -103,9 +103,8 @@ jobs:
           export LTO=thin
           CLANG_BIN=/home/runner/build_tools/bin
           export PATH=$CLANG_BIN:$PATH
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
-          grep -E "CONFIG_*" .config
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 LTO=thin -j$(nproc)
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
