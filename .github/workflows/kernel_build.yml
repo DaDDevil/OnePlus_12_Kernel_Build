@@ -97,7 +97,8 @@ jobs:
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           #sed -i '/^_c_flags / s/$/ -I$(srctree)\/$(src)/' scripts/Makefile.lib
-          sed -i "/^_c_flags / s/$/ -I\$(srctree)\/\$(src)/" scripts/Makefile.lib
+          #sed -i "/^_c_flags / s/$/ -I\$(srctree)\/\$(src)/" scripts/Makefile.lib
+          sed -i 's/^_c_flags.*$/& -I$(srctree)\/$(src)/' scripts/Makefile.lib
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
