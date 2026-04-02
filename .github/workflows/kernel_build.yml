@@ -75,7 +75,7 @@ jobs:
           echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
@@ -96,9 +96,8 @@ jobs:
       - name: 修复内核源码头文件引用问题
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
-          #sed -i '/^_c_flags / s/$/ -I$(srctree)\/$(src)/' scripts/Makefile.lib
-          #sed -i "/^_c_flags / s/$/ -I\$(srctree)\/\$(src)/" scripts/Makefile.lib
-          sed -i 's/^_c_flags.*$/& -I$(srctree)\/$(src)/' scripts/Makefile.lib
+          sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
+
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
@@ -107,6 +106,15 @@ jobs:
           export PATH=$CLANG_BIN:$PATH
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 LLVM=1 LLVM_IAS=1 -j$(nproc)
+      - name: 生成内核模块并打包
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          mkdir -p install_modules
+          make -j$(nproc) ARCH=arm64 \
+          INSTALL_MOD_PATH=install_modules \
+          modules_install
+          find install_modules -name "*.ko" -exec /home/runner/build_tools/bin/llvm-strip --strip-debug {} +
+          zip -ry kernel_ko.zip install_modules/ 
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
@@ -125,8 +133,8 @@ jobs:
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           # 现在的路径就在根目录了
-          path: ~/kernel_source/android_kernel_oneplus_sm8650/OnePlus12-Kernel.zip
+          path: ~/kernel_source/android_kernel_oneplus_sm8650/*.zip
           archive: false
