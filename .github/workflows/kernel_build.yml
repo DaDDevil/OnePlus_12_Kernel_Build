@@ -41,8 +41,8 @@ jobs:
       - name: 拉取编译工具链及内核源码
         run: |
          cd ~/build_tools
-         wget https://github.com/PurrrsLitterbox/LLVM-stable/releases/download/llvmorg-22.1.0/clang.tar.zst
-         tar -xf clang.tar.zst
+         wget https://github.com/rufnx/clang_aosp/releases/download/clang-r596125/clang-r596125.tar.gz
+         tar -zxvf clang-r596125.tar.gz -C ./aosp_clang
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
@@ -102,7 +102,8 @@ jobs:
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           export LTO=thin
-          CLANG_BIN=/home/runner/build_tools/bin
+          CLANG_BIN=/home/runner/build_tools/aosp_clang/bin
+          echo "编译器版本:$(clang --version)"
           export PATH=$CLANG_BIN:$PATH
           make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
