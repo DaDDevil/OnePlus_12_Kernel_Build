@@ -38,21 +38,34 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils
-      - name: 拉取编译工具链及内核源码
+      - name: 设置编译器环境
         run: |
-         cd ~/build_tools
-         wget https://github.com/rufnx/clang_aosp/releases/download/clang-r596125/clang-r596125.tar.gz
-         mkdir -p aosp_clang
-         tar -zxvf clang-r596125.tar.gz -C aosp_clang && ls
-         pwd
-         cd ~/kernel_source
-         git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
-         git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
-         git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
-         mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
-         mv android_kernel_oneplus_sm8650-modules sm8650-modules
-         #rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
-         #echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
+          cd ~/build_tools
+          wget https://github.com/rufnx/clang_aosp/releases/download/clang-r596125/clang-r596125.tar.gz
+          mkdir -p aosp_clang
+          tar -zxvf clang-r596125.tar.gz -C aosp_clang && ls
+          pwd
+          CLANG_BIN_PATH=$(find . -name "clang" -type f -executable -printf "%h\n" | head -n 1)
+          if [ -z "$CLANG_BIN_PATH" ]; then
+            echo "❌ 错误：在工作目录中找不到 clang 执行文件！"
+            exit 1
+          fi
+          ABS_CLANG_PATH=$(realpath "$CLANG_BIN_PATH")
+          echo "✅ 找到 Clang 路径: $ABS_CLANG_PATH"
+          # 3. 注入 GitHub 环境变量（核心步骤）
+          echo "$ABS_CLANG_PATH" >> $GITHUB_PATH
+          echo "编译器安装路径:$(pwd)/aosp_clang"
+          echo "编译器bin目录:$CLANG_BIN_PATH"
+      - name: 拉取内核源码
+        run: |
+          cd ~/kernel_source
+          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
+          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
+          git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
+          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
+          mv android_kernel_oneplus_sm8650-modules sm8650-modules
+          #rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
+          #echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
