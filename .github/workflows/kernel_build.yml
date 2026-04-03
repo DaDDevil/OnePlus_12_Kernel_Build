@@ -99,9 +99,9 @@ jobs:
           #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
