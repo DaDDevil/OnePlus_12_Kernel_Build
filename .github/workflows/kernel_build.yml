@@ -84,10 +84,10 @@ jobs:
           #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SRCVERSION_ALL=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_FORCE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_LTO_NONE=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
@@ -132,6 +132,7 @@ jobs:
           chmod -R 755 .
           chmod 755 ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/*
           cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/System.map ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
