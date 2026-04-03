@@ -43,7 +43,7 @@ jobs:
          cd ~/build_tools
          wget https://github.com/rufnx/clang_aosp/releases/download/clang-r596125/clang-r596125.tar.gz
          mkdir -p aosp_clang
-         tar -zxvf clang-r596125.tar.gz -C ./aosp_clang
+         tar -zxvf clang-r596125.tar.gz -C aosp_clang
          cd ~/kernel_source
          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
@@ -110,12 +110,13 @@ jobs:
           make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
       - name: 生成内核模块并打包
         run: |
+          echo "编译器版本:$(clang --version)"
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           mkdir -p install_modules
           make -j$(nproc) ARCH=arm64 \
           INSTALL_MOD_PATH=install_modules \
           modules_install
-          find install_modules -name "*.ko" -exec /home/runner/build_tools/bin/llvm-strip --strip-debug {} +
+          find install_modules -name "*.ko" -exec /home/runner/build_tools/aosp_clang/bin/llvm-strip --strip-debug {} +
           zip -ry kernel_ko.zip install_modules/ 
       - name: 制作 AnyKernel3 刷机包
         run: |
