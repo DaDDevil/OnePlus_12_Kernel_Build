@@ -84,16 +84,16 @@ jobs:
           #patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
           #patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
           #patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
-          #echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
@@ -131,7 +131,7 @@ jobs:
           INSTALL_MOD_PATH=install_modules \
           modules_install
           find install_modules -name "*.ko" -exec /home/runner/build_tools/aosp_clang/bin/llvm-strip --strip-debug {} +
-          zip -ry kernel_ko.zip install_modules/ 
+          zip -ry kernel_ko.zip install_modules/
       - name: 制作 AnyKernel3 刷机包
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
