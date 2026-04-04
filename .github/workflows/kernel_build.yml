@@ -41,7 +41,7 @@ jobs:
       - name: 设置编译器环境
         run: |
           cd ~/build_tools
-          wget https://github.com/rufnx/clang_aosp/releases/download/clang-r596125/clang-r596125.tar.gz
+          wget https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15071444/clang-r596125.tar.gz
           mkdir -p aosp_clang
           tar -zxvf clang-r596125.tar.gz -C aosp_clang && ls
           pwd
@@ -84,24 +84,24 @@ jobs:
           #patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
           #patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
           #patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
-          echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
@@ -116,10 +116,11 @@ jobs:
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
-          export LTO=thin
+          #export LTO=thin
           CLANG_BIN=/home/runner/build_tools/aosp_clang/bin
           echo "编译器版本:$(clang --version)"
           export PATH=$CLANG_BIN:$PATH
+          echo "编译器环境变量配置:$($CLANG_BIN)"
           make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
       - name: 生成内核模块并打包
@@ -131,6 +132,7 @@ jobs:
           INSTALL_MOD_PATH=install_modules \
           modules_install
           find install_modules -name "*.ko" -exec /home/runner/build_tools/aosp_clang/bin/llvm-strip --strip-debug {} +
+          cp ~/kernel_source/android_kernel_oneplus_sm8650/System.map ~/kernel_source/android_kernel_oneplus_sm8650/install_modules/
           zip -ry kernel_ko.zip install_modules/
       - name: 制作 AnyKernel3 刷机包
         run: |
@@ -147,7 +149,7 @@ jobs:
           chmod -R 755 .
           chmod 755 ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/*
           cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
-          cp ~/kernel_source/android_kernel_oneplus_sm8650/System.map ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/
+          
           zip -r9y ../OnePlus12-Kernel.zip ./*
           
       - name: 发布你的成品
