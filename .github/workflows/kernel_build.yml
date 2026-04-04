@@ -23,7 +23,7 @@ env:
   CLANG_DIR: /home/runner/aosp_clang
   CCACHE_DIR: /home/runner/.ccache
   # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
-  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu-
+  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
 
 jobs:
   build:
