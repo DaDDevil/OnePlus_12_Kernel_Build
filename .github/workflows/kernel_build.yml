@@ -64,15 +64,14 @@ jobs:
           git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
           mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
           mv android_kernel_oneplus_sm8650-modules sm8650-modules
-          #rm ~/kernel_source/android_kernel_oneplus_sm8650/android/abi_gki_protected_exports_* || true
-          #echo "-Noevils" > ~/kernel_source/android_kernel_oneplus_sm8650/.scmversion
       - name: 安装KernelSu_Next
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          #sed -i 's/<stdbool.h>/"stdbool.h"/g' drivers/nfc/oplus_nfc/oplus_nfc.[ch]
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
       - name: 使用官方脚本开启 Docker 选项
         run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           echo "[*] 正在精准开启 Docker 配置项..."
           # 开启 Namespaces 和 Cgroups
           ./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
