@@ -93,6 +93,7 @@ jobs:
           make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" olddefconfig
       - name: 开始编译内核
         run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650/
           make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
       - name: 生成内核模块并打包
         run: |
