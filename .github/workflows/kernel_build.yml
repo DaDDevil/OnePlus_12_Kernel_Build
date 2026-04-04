@@ -128,10 +128,14 @@ jobs:
           ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
           # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
           ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
+          
       - name: 🛠️ 植入 Gunyah 终极修复补丁
         run: |
+          cd ${{ env.KERNEL_DIR }}
+          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
           echo "[*] 正在应用 SCM 权限与内存大页修复补丁..."
-          patch -p1 < ${{ env.WORKDIR }}/gunyah_memory_fix.patch
+          patch -p1 < gunyah_memory_fix.patch
+          
       - name: 开始编译内核 (火力全开)
         run: |
           cd ${{ env.KERNEL_DIR }}
