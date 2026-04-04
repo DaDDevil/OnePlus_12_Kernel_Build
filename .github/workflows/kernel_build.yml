@@ -21,6 +21,7 @@ env:
   WORKDIR: /home/runner
   KERNEL_DIR: /home/runner/android_kernel_oneplus_sm8650
   CLANG_DIR: /home/runner/aosp_clang
+  CCACHE_DIR: /home/runner/.ccache
   # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
   MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
 
@@ -45,10 +46,18 @@ jobs:
       - name: 配置 CCache 编译缓存 (提速神器)
         uses: actions/cache@v4
         with:
-          path: ~/.ccache
+          path: ${{ env.CCACHE_DIR }}  # <--- 动态引用全局变量
           key: ${{ runner.os }}-kernel-ccache-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-kernel-ccache-
+
+      - name: 初始化 CCache 物理结界
+        run: |
+          # 就算天塌下来，也要先把这个文件夹捏出来
+          mkdir -p ${{ env.CCACHE_DIR }}
+          # 把缓存上限从默认的 500M 强行拉爆到 5GB
+          ccache -M 5G
+
 
       - name: 下载并配置 Clang 编译器
         run: |
