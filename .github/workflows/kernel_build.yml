@@ -71,48 +71,26 @@ jobs:
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
           #sed -i 's/<stdbool.h>/"stdbool.h"/g' drivers/nfc/oplus_nfc/oplus_nfc.[ch]
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
-      - name: 添加DroidSpaces支持
+      - name: 使用官方脚本开启 Docker 选项
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/optional/fix-docker-overlay2-on-f2fs.patch
-          #patch -p1 < 'fix-docker-overlay2-on-f2fs.patch'
-          #patch -p1 < '01.6.1+_disable_crc_checks_for_lkms.patch'
-          #patch -p1 < '02.fix_restore cgroup file prefix handling .patch'
-          #patch -p1 < '03.5.15+_use_android_abi_padding_for_posix_mqueue.patch'
-          #patch -p1 < '04.use_android_abi_padding_for_sysvipc_task_struct.patch'
-          #echo "CONFIG_PID_NS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_SYSVIPC=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_CGROUP_DEVICE=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_NAMESPACES=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_CGROUP_PIDS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_DEVTMPFS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_FW_LOADER_COMPRESS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_BRIDGE_NETFILTER=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_NF_TABLES=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_OVERLAY_FS=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
+          echo "[*] 正在精准开启 Docker 配置项..."
+          # 开启 Namespaces 和 Cgroups
+          ./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
+          ./scripts/config --file out/.config -e CGROUPS -e MEMCG -e BLK_CGROUP -e CGROUP_SCHED -e CGROUP_PIDS -e CGROUP_FREEZER -e CPUSETS -e CGROUP_DEVICE -e CGROUP_CPUACCT
+          # 开启网络和 OverlayFS
+          ./scripts/config --file out/.config -e VETH -e BRIDGE -e BRIDGE_NETFILTER
+          ./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
+          ./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
+          ./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
+          # 极其关键的一步：解决依赖冲突！
+          echo "[*] 执行 olddefconfig 以应用配置并解决依赖..."
+          make ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out olddefconfig
       - name: 修复内核源码头文件引用问题
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
           sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
           sed -i 's/-dirty//g' scripts/setlocalversion
+          sed -i '79,95d' ./kernel/module/signing.c
       - name: 设置环境变量并编译内核
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
