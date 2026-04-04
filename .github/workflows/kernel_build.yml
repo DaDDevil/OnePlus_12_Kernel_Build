@@ -99,15 +99,15 @@ jobs:
           #echo "CONFIG_MODULE_FORCE_LOAD=y" >> arch/arm64/configs/gki_defconfig
           #echo "CONFIG_MODULE_UNLOAD=y" >> arch/arm64/configs/gki_defconfig
           echo "CONFIG_RFKILL=y" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
-          #echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
-          echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODVERSIONS=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_SIG_FORCE=n" >> arch/arm64/configs/gki_defconfig
+          echo "CONFIG_MODULE_SIG=n" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_ARCH_SUPPORTS_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_LTO_CLANG_THIN=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_CC_OPTIMIZE_FOR_SIZE=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_HZ_1000=y" >> arch/arm64/configs/gki_defconfig
+          #echo "CONFIG_ZRAM_DEF_COMP_LZ4=y" >> arch/arm64/configs/gki_defconfig
       - name: 修复内核源码头文件引用问题
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650
