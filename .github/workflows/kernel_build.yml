@@ -109,10 +109,20 @@ jobs:
           #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
           #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
           #./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
-          
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
-
+          echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
+          # 开启透明大页核心支持
+          ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
+          # 建议设为 MADVISE (按需分配)，而不是 ALWAYS，避免宿主机日常使用内存爆炸
+          ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
+          # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
+          ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
+      - name: 🛠️ 植入 Gunyah 终极修复补丁
+        run: |
+          cd kernel_workspace/
+          echo "[*] 正在应用 SCM 权限与内存大页修复补丁..."
+          patch -p1 < ../gunyah_memory_fix.patch
       - name: 开始编译内核 (火力全开)
         run: |
           cd ${{ env.KERNEL_DIR }}
