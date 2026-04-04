@@ -69,6 +69,7 @@ jobs:
           git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }} sm8650-modules
           git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }} sm8650-devicetrees
           echo "✅ 源码拉取完毕，平级目录结构就绪"
+          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
 
       - name: 安装 KernelSU_Next
         run: |
@@ -107,7 +108,7 @@ jobs:
           ./scripts/config --file out/.config -e PID_NS -e CGROUP_PIDS -e CGROUP_DEVICE
           #./scripts/config --file out/.config -e VETH -e BRIDGE -e BRIDGE_NETFILTER
           #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
-          #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
+          ./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
           #./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
@@ -122,7 +123,7 @@ jobs:
         run: |
           cd kernel_workspace/
           echo "[*] 正在应用 SCM 权限与内存大页修复补丁..."
-          patch -p1 < ../gunyah_memory_fix.patch
+          patch -p1 < ${{ env.WORKDIR }}/gunyah_memory_fix.patch
       - name: 开始编译内核 (火力全开)
         run: |
           cd ${{ env.KERNEL_DIR }}
@@ -140,7 +141,7 @@ jobs:
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
           # 备份地图文件，方便后续排错或 depmod
           cp out/System.map install_modules/
-          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip install_modules/
+          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip install_modules/*
 
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
