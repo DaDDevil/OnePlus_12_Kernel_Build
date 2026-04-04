@@ -75,6 +75,7 @@ jobs:
           sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
           sed -i 's/-dirty//g' scripts/setlocalversion
           sed -i '79,95d' ./kernel/module/signing.c
+          sed -i '81d' ./kernel/module/signing.c
       - name: 使用官方脚本开启 Docker 选项
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
