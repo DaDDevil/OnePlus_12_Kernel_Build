@@ -121,7 +121,6 @@ jobs:
           ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
       - name: 🛠️ 植入 Gunyah 终极修复补丁
         run: |
-          cd kernel_workspace/
           echo "[*] 正在应用 SCM 权限与内存大页修复补丁..."
           patch -p1 < ${{ env.WORKDIR }}/gunyah_memory_fix.patch
       - name: 开始编译内核 (火力全开)
