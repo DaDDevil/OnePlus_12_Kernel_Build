@@ -1,133 +1,162 @@
-name: OP12_Kernel_Build
+name: OP12_Kernel_Build_Optimized
 
 on: 
   workflow_dispatch: 
-      inputs:
-        kernel_repo:
-            description: '请输入内核源码仓库地址:'
-            required: true
-        kernel_vendor_repo:
-            description: '请输入内核vendor源码仓库地址:'
-            required: true
-        kernel_devicetrees_repo:
-            description: '请输入内核devicetrees源码仓库地址:'
-            required: true
-        kernel_defconfig:
-            description: '请输入你要编译的配置文件:'
-            required: false
+    inputs:
+      kernel_repo:
+        description: '请输入内核源码仓库地址:'
+        required: true
+      kernel_vendor_repo:
+        description: '请输入内核vendor源码仓库地址:'
+        required: true
+      kernel_devicetrees_repo:
+        description: '请输入内核devicetrees源码仓库地址:'
+        required: true
+      kernel_defconfig:
+        description: '请输入你要编译的配置文件 (可留空):'
+        required: false
+
+# 核心环境变量，一次定义，全局通用
+env:
+  WORKDIR: /home/runner
+  KERNEL_DIR: /home/runner/android_kernel_oneplus_sm8650
+  CLANG_DIR: /home/runner/aosp_clang
+  # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
+  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 释放磁盘空间
+      - name: 释放磁盘空间 (The Purge)
         run: |
-         sudo rm -rf /usr/share/dotnet
-         sudo rm -rf /usr/local/lib/android
-         sudo rm -rf /opt/ghc
-         sudo rm -rf "/usr/local/share/boost"
-         sudo rm -rf /usr/share/swift
-      - name: Set Swap Space
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /usr/share/swift
+          
+      - name: 设置虚拟内存 (Swap)
         uses: pierotofy/set-swap-space@v1.0
         with:
           swap-size-gb: 15
           
-      - name: 创建编译目录
-        run: |
-          cd ~ && mkdir build_tools && mkdir kernel_source
-      - name: 安装环境依赖
+      - name: 安装环境依赖 (带 ccache)
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils
-      - name: 设置编译器环境
+          sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils ccache
+          
+      - name: 配置 CCache 编译缓存 (提速神器)
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-kernel-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-kernel-ccache-
+
+      - name: 下载并配置 Clang 编译器
         run: |
-          cd ~/build_tools
-          wget https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15071444/clang-r596125.tar.gz
-          mkdir -p aosp_clang
-          tar -zxvf clang-r596125.tar.gz -C aosp_clang && ls
-          pwd
-          CLANG_BIN_PATH=$(find . -name "clang" -type f -executable -printf "%h\n" | head -n 1)
-          if [ -z "$CLANG_BIN_PATH" ]; then
-            echo "❌ 错误：在工作目录中找不到 clang 执行文件！"
-            exit 1
-          fi
-          ABS_CLANG_PATH=$(realpath "$CLANG_BIN_PATH")
-          echo "✅ 找到 Clang 路径: $ABS_CLANG_PATH"
-          # 3. 注入 GitHub 环境变量（核心步骤）
-          echo "$ABS_CLANG_PATH" >> $GITHUB_PATH
-          export PATH=$CLANG_BIN_PATH:$PATH
-          echo "编译器安装路径:$(pwd)/aosp_clang"
-          echo "编译器bin目录:$CLANG_BIN_PATH"
-      - name: 拉取内核源码
+          cd ${{ env.WORKDIR }}
+          wget -q https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15071444/clang-r596125.tar.gz
+          mkdir -p ${{ env.CLANG_DIR }}
+          tar -zxf clang-r596125.tar.gz -C ${{ env.CLANG_DIR }}
+          # 直接将 clang 的 bin 目录和 ccache 注入环境变量
+          echo "PATH=${{ env.CLANG_DIR }}/bin:/usr/lib/ccache:$PATH" >> $GITHUB_ENV
+          echo "✅ 编译器部署完毕"
+
+      - name: 拉取内核源码 (精准对齐软链接)
         run: |
-          cd ~/kernel_source
-          git clone --depth=1 ${{ github.event.inputs.kernel_repo }}
-          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }}
-          git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }}
-          mv android_kernel_oneplus_sm8650-devicetrees sm8650-devicetrees
-          mv android_kernel_oneplus_sm8650-modules sm8650-modules
-      - name: 安装KernelSu_Next
+          cd ${{ env.WORKDIR }}
+          # 逻辑重构：git clone 时直接指定目标文件夹名字，一步剥离 "android_kernel_oneplus_" 前缀
+          # 且让这三个仓库在 /home/runner/ 下保持绝对的平级关系，完美修复 ../ 软链接指向
+          git clone --depth=1 ${{ github.event.inputs.kernel_repo }} android_kernel_oneplus_sm8650
+          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }} sm8650-modules
+          git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }} sm8650-devicetrees
+          echo "✅ 源码拉取完毕，平级目录结构就绪"
+
+      - name: 安装 KernelSU_Next
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
+          cd ${{ env.KERNEL_DIR }}
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
-      - name: 修复内核源码头文件引用问题
+
+      - name: 源码级修复与“上帝模式”破解
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          cd ${{ env.KERNEL_DIR }}
+          # 1. 修复 Tracepoint 相对路径问题
           sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
-          sed -i 's/-dirty//g' scripts/setlocalversion
-          sed -i '79,95d' ./kernel/module/signing.c
-          sed -i '81d' ./kernel/module/signing.c
-      - name: 使用官方脚本开启 Docker 选项
+          # 2. 洗白内核版本号后缀
+          sed -i 's/echo "+"$/# echo "+"/' scripts/setlocalversion
+          
+          # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
+          cat << 'EOF' > patch_sig.py
+          import re
+          with open('kernel/module/signing.c', 'r') as f:
+              content = f.read()
+          # 强行把函数体替换为直接放行
+          content = re.sub(r'int module_sig_check\(.*?\)\s*\{.*?\n\}', 'int module_sig_check(struct load_info *info, int flags) {\n\tinfo->sig_ok = true;\n\treturn 0;\n}', content, flags=re.DOTALL)
+          with open('kernel/module/signing.c', 'w') as f:
+              f.write(content)
+          EOF
+          python3 patch_sig.py
+          echo "✅ 签名保护已物理拆除"
+
+      - name: 配置内核并注入 Docker 选项
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
-          echo "[*] 正在精准开启 Docker 配置项..."
-          # 开启 Namespaces 和 Cgroups
+          cd ${{ env.KERNEL_DIR }}
+          # 基础配置
+          make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
+          
+          # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
           ./scripts/config --file out/.config -e CGROUPS -e MEMCG -e BLK_CGROUP -e CGROUP_SCHED -e CGROUP_PIDS -e CGROUP_FREEZER -e CPUSETS -e CGROUP_DEVICE -e CGROUP_CPUACCT
-          # 开启网络和 OverlayFS
           ./scripts/config --file out/.config -e VETH -e BRIDGE -e BRIDGE_NETFILTER
           ./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
           ./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
           ./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
-          # 极其关键的一步：解决依赖冲突！
-          echo "[*] 执行 olddefconfig 以应用配置并解决依赖..."
-          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" olddefconfig
-      - name: 开始编译内核
+          
+          # 应用并补全依赖
+          make ${{ env.MAKE_ENV }} olddefconfig
+
+      - name: 开始编译内核 (火力全开)
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/
-          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
-      - name: 生成内核模块并打包
+          cd ${{ env.KERNEL_DIR }}
+          ccache -z # 归零缓存统计
+          make ${{ env.MAKE_ENV }} -j$(nproc)
+          ccache -s # 打印缓存命中率
+
+      - name: 提取驱动模块 (Modules)
         run: |
-          echo "编译器版本:$(clang --version)"
-          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          cd ${{ env.KERNEL_DIR }}
           mkdir -p install_modules
-          make -j$(nproc) ARCH=arm64 \
-          INSTALL_MOD_PATH=install_modules \
-          modules_install
-          find install_modules -name "*.ko" -exec /home/runner/build_tools/aosp_clang/bin/llvm-strip --strip-debug {} +
-          cp ~/kernel_source/android_kernel_oneplus_sm8650/System.map ~/kernel_source/android_kernel_oneplus_sm8650/install_modules/
-          zip -ry kernel_ko.zip install_modules/
-      - name: 制作 AnyKernel3 刷机包
+          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=install_modules modules_install
+          
+          # 精简调试信息，减小体积
+          find install_modules -name "*.ko" -exec llvm-strip --strip-debug {} +
+          # 备份地图文件，方便后续排错或 depmod
+          cp out/System.map install_modules/
+          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip install_modules/
+
+      - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650
-          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
-          if [ ! -f ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ]; then
-            echo "错误：找不到编译生成的 Image 文件！"
-            exit 1
-          fi
+          cd ${{ env.WORKDIR }}
+          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel3
           
-          cp ~/kernel_source/android_kernel_oneplus_sm8650/arch/arm64/boot/Image ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/Image
-          cd ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel
+          # 1. 拷贝内核到 AK3
+          cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image AnyKernel3/
+          
+          cd AnyKernel3
+          # 2. 关闭设备检查机制
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
-          chmod -R 755 .
-          chmod 755 ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/*
-          cp ~/kernel_source/android_kernel_oneplus_sm8650/.config ~/kernel_source/android_kernel_oneplus_sm8650/AnyKernel/ssz.txt
           
-          zip -r9y ../OnePlus12-Kernel.zip ./*
+          # 3. 解决 Busybox 报错的核心逻辑：恢复工具目录的执行权限
+          chmod -R 755 tools/
+          chmod -R 755 META-INF/
           
-      - name: 发布你的成品
-        uses: actions/upload-artifact@v6
+          # 4. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
+          rm -rf .git README.md
+          zip -r9y ../OnePlus12-Kernel-AK3.zip ./*
+
+      - name: 🚀 发布最终成品
+        uses: actions/upload-artifact@v4
         with:
-          # 现在的路径就在根目录了
-          path: ~/kernel_source/android_kernel_oneplus_sm8650/*.zip
-          archive: false
+          name: OnePlus12-Kernel-Build
+          path: |
+            ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
+            ${{ env.WORKDIR }}/kernel_ko.zip
+          compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
