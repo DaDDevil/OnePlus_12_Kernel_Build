@@ -54,6 +54,7 @@ jobs:
           echo "✅ 找到 Clang 路径: $ABS_CLANG_PATH"
           # 3. 注入 GitHub 环境变量（核心步骤）
           echo "$ABS_CLANG_PATH" >> $GITHUB_PATH
+          export PATH=$CLANG_BIN_PATH:$PATH
           echo "编译器安装路径:$(pwd)/aosp_clang"
           echo "编译器bin目录:$CLANG_BIN_PATH"
       - name: 拉取内核源码
@@ -68,6 +69,12 @@ jobs:
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+      - name: 修复内核源码头文件引用问题
+        run: |
+          cd ~/kernel_source/android_kernel_oneplus_sm8650
+          sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
+          sed -i 's/-dirty//g' scripts/setlocalversion
+          sed -i '79,95d' ./kernel/module/signing.c
       - name: 使用官方脚本开启 Docker 选项
         run: |
           cd ~/kernel_source/android_kernel_oneplus_sm8650/
@@ -83,23 +90,10 @@ jobs:
           ./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
           # 极其关键的一步：解决依赖冲突！
           echo "[*] 执行 olddefconfig 以应用配置并解决依赖..."
-          make ARCH=arm64 LLVM=1 LLVM_IAS=1 O=out olddefconfig
-      - name: 修复内核源码头文件引用问题
+          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" olddefconfig
+      - name: 开始编译内核
         run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650
-          sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
-          sed -i 's/-dirty//g' scripts/setlocalversion
-          sed -i '79,95d' ./kernel/module/signing.c
-      - name: 设置环境变量并编译内核
-        run: |
-          cd ~/kernel_source/android_kernel_oneplus_sm8650
-          #export LTO=thin
-          CLANG_BIN=/home/runner/build_tools/aosp_clang/bin
-          echo "编译器版本:$(clang --version)"
-          export PATH=$CLANG_BIN:$PATH
-          echo "编译器环境变量配置:$($CLANG_BIN)"
-          make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
-          make ARCH=arm64 LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
+          make ARCH=arm64 O=out LLVM=1 CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC=clang HOSTCXX=clang++ HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error" -j$(nproc)
       - name: 生成内核模块并打包
         run: |
           echo "编译器版本:$(clang --version)"
