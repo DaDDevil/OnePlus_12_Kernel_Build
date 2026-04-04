@@ -117,7 +117,7 @@ jobs:
           ./scripts/config --file out/.config -e PID_NS -e CGROUP_PIDS -e CGROUP_DEVICE
           #./scripts/config --file out/.config -e VETH -e BRIDGE -e BRIDGE_NETFILTER
           #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
-          ./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
+          #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
           #./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
