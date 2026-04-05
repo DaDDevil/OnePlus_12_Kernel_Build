@@ -141,16 +141,16 @@ jobs:
 
       - name: 暴力短接 OPLUS 设备树开关
         run: |
-          cd ${{ env.KERNEL_DIR }}
+          cd ${{ env.WORKDIR }}/sm8650-devicetrees
           echo "开始执行源码级物理短接..."
           # 使用 find 配合 sed，在 dts 目录下地毯式搜索 Makefile
           # 并把 ifeq ($(OPLUS_DTS_OVERLAY),1) 强行替换为 ifeq (1,1)
-          find arch/arm64/boot/dts/ -name "Makefile" -exec sed -i 's/ifeq ($(OPLUS_DTS_OVERLAY),1)/ifeq (1,1)/g' {} +
+          find . -name "Makefile" -exec sed -i 's/ifeq ($(OPLUS_DTS_OVERLAY),1)/ifeq (1,1)/g' {} +
           # 兼容一下可能带空格的写法，防患于未然
-          find arch/arm64/boot/dts/ -name "Makefile" -exec sed -i 's/ifeq ($(OPLUS_DTS_OVERLAY), 1)/ifeq (1,1)/g' {} +
+          find . -name "Makefile" -exec sed -i 's/ifeq ($(OPLUS_DTS_OVERLAY), 1)/ifeq (1,1)/g' {} +
           # 严谨起见，顺手查个岗，看看是不是真的篡改成功了
           echo "检查篡改结果："
-          grep -r "ifeq (1,1)" arch/arm64/boot/dts/ || echo "警告：没找到替换结果，可能是源码里的变量名不太一样！"
+          grep -r "ifeq (1,1)" arch/arm64/boot/dts/ || echo "警告：没找到替换结果，可能是源码里的变量名不太一样！$(exit 1)"
           
       - name: 开始编译内核 (火力全开)
         run: |
