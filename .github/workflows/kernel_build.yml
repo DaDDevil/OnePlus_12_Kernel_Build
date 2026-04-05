@@ -23,7 +23,7 @@ env:
   CLANG_DIR: /home/runner/aosp_clang
   CCACHE_DIR: /home/runner/.ccache
   # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
-  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
+  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- OPLUS_DTS_OVERLAY=1 KCFLAGS="-Wno-error"
 
 jobs:
   build:
@@ -124,7 +124,7 @@ jobs:
           
           # 注入 Docker/LXC 所需配置
           #./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
-          ./scripts/config --file out/.config -e PID_NS -e IPC_NS -e USER_NS -e CGROUP_PIDS -e CGROUP_DEVICE -e MODULE_SIG_PROTECT
+          ./scripts/config --file out/.config -e PID_NS -e IPC_NS -e USER_NS -e CGROUP_PIDS -e CGROUP_DEVICE -e MODULE_SIG_PROTECT -e WAFFLE_DTB
           #./scripts/config --file out/.config -e SYSCTL -e SYSVIPC -e POSIX_MQUEUE -e DEVTMPFS
           #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
           #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
@@ -152,7 +152,7 @@ jobs:
           echo "开始流水线作业：手搓 dtbo 镜像..."
           # 第一步：获取“缝合神器”
           # 从 Google 官方仓库拉取专门用来打包 dtbo 的 Python 脚本
-          wget https://raw.githubusercontent.com/aosp-mirror/platform_system_libufdt/master/utils/src/mkdtboimg.py -O mkdtboimg.py
+          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/mkdtboimg.py -O mkdtboimg.py
           chmod +x mkdtboimg.py
           # 第二步：建立临时集结营
           # 在 out 目录下建个专属文件夹，免得一堆文件混在一起看着头大
