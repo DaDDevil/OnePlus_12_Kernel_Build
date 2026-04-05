@@ -176,7 +176,7 @@ jobs:
           # 带着怀疑的态度，我们把 .dtbo 和 .dtb 都扫一遍（因为不同厂商的 vendor 树最终产物后缀可能略有不同）
           # 找到后直接 cp 复制到集结营里
           echo "正在全图搜索设备树碎片..."
-          find out/arch/arm64/boot/dts/ -type f \( -name "*.dtb" -o -name "*.dtbo" \) -exec cp {} $STAGING_DIR/ \;
+          find out/arch/arm64/boot/dts/ -type f -name "*.dtbo" -exec cp {} $STAGING_DIR/ \;
           # 第四步：点验战利品（防暴毙检查）
           # 严谨起见，查一下到底有没有文件。如果没搜到，直接报错中断，别让后面刷进去个空包
           FILE_COUNT=$(ls -1 $STAGING_DIR | wc -l)
