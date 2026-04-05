@@ -156,6 +156,7 @@ jobs:
         run: |
           cd ${{ env.KERNEL_DIR }}
           echo "CONFIG_WAFFLE_DTB=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
+          echo "CONFIG_OPLUS_DEVICE_DTBS=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
           ccache -z # 归零缓存统计
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
