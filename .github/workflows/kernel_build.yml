@@ -106,6 +106,16 @@ jobs:
           python3 patch_sig.py
           echo "✅ 签名保护已物理拆除"
 
+      - name: 🛠️ 植入 Gunyah,Docker 终极修复补丁
+        run: |
+          cd ${{ env.KERNEL_DIR }}
+          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+          for i in *.patch; do patch -p1 < "$i"; done
+      
       - name: 配置内核并注入 Docker 选项
         run: |
           cd ${{ env.KERNEL_DIR }}
@@ -128,13 +138,6 @@ jobs:
           ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
           # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
           ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
-          
-      - name: 🛠️ 植入 Gunyah 终极修复补丁
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
-          echo "[*] 正在应用 SCM 权限与内存大页修复补丁..."
-          patch -p1 < gunyah_memory_fix.patch
           
       - name: 开始编译内核 (火力全开)
         run: |
