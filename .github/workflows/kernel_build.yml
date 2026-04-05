@@ -94,17 +94,17 @@ jobs:
           sed -i 's/-dirty//g' scripts/setlocalversion
           
           # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
-          cat << 'EOF' > patch_sig.py
-          import re
-          with open('kernel/module/signing.c', 'r') as f:
-              content = f.read()
+          #cat << 'EOF' > patch_sig.py
+          #import re
+          #with open('kernel/module/signing.c', 'r') as f:
+          #    content = f.read()
           # 强行把函数体替换为直接放行
-          content = re.sub(r'int module_sig_check\(.*?\)\s*\{.*?\n\}', 'int module_sig_check(struct load_info *info, int flags) {\n\tinfo->sig_ok = true;\n\treturn 0;\n}', content, flags=re.DOTALL)
-          with open('kernel/module/signing.c', 'w') as f:
-              f.write(content)
-          EOF
-          python3 patch_sig.py
-          echo "✅ 签名保护已物理拆除"
+          #content = re.sub(r'int module_sig_check\(.*?\)\s*\{.*?\n\}', 'int module_sig_check(struct load_info *info, int flags) {\n\tinfo->sig_ok = true;\n\treturn 0;\n}', content, flags=re.DOTALL)
+          #with open('kernel/module/signing.c', 'w') as f:
+          #    f.write(content)
+          #EOF
+          #python3 patch_sig.py
+          #echo "✅ 签名保护已物理拆除"
 
       - name: 🛠️ 植入 Gunyah,Docker 终极修复补丁
         run: |
@@ -124,7 +124,7 @@ jobs:
           
           # 注入 Docker/LXC 所需配置
           #./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
-          ./scripts/config --file out/.config -e PID_NS -e IPC_NS -e USER_NS -e CGROUP_PIDS -e CGROUP_DEVICE
+          ./scripts/config --file out/.config -e PID_NS -e IPC_NS -e USER_NS -e CGROUP_PIDS -e CGROUP_DEVICE -e MODULE_SIG_PROTECT
           #./scripts/config --file out/.config -e SYSCTL -e SYSVIPC -e POSIX_MQUEUE -e DEVTMPFS
           #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
           #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
