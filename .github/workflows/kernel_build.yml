@@ -202,7 +202,7 @@ jobs:
           cd ${{ env.KERNEL_DIR }}
           echo "开始执行斩首行动，从 397 个嫌疑人里揪出那 6 个天命之子..."
           # 1. 建立一个干净的集结点
-          mkdir -p out_dtb_target
+          mkdir -p out/out_dtb_target
           # 2. 下达通缉名单
           TARGETS="pineapple.dtb pineapple-v2.dtb cliffs.dtb cliffs7.dtb pineapplep.dtb pineapplep-v2.dtb"
           # 3. 带着怀疑的态度，全盘搜索并抓取，防止路径玄学
