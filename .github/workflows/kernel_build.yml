@@ -186,6 +186,7 @@ jobs:
           # 用 python3 运行脚本，把集结营里的所有碎片强行压缩成一个完整的 img
           python3 mkdtboimg.py create out/dtbo.img --page_size=4096 $STAGING_DIR/*
           echo "大功告成！dtbo.img 已经安详地躺在 out/ 目录下了，就等你刷了！"
+          find out/arch/arm64/boot/dts/ -name ".dtb" -type f -exec mv -t out/install_modules/ {} +
 
       - name: 提取驱动模块 (Modules)
         run: |
