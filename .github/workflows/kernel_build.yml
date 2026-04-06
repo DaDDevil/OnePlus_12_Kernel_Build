@@ -195,7 +195,7 @@ jobs:
               exit 1
           fi
              echo "漂亮！成功抓获 $FILE_COUNT_DTB 个设备树碎片，准备执行缝合！"
-          python3 mkdtboimg.py create out/dtb.img --page_size=4096 $STAGING_DIR_DTB/*
+          #python3 mkdtboimg.py create out/dtb.img --page_size=4096 $STAGING_DIR_DTB/*
 
       - name: 精准提取基础 DTB 碎片
         run: |
@@ -225,8 +225,7 @@ jobs:
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
           # 备份地图文件，方便后续排错或 depmod
           cp out/System.map out/install_modules/
-          cp out/*.img out/install_modules/
-          cp -r out/out_dtb_target out/install_modules/
+          cp out/out_dtb_target/* out/install_modules/
           cp out/.config out/install_modules/
           zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/
 
