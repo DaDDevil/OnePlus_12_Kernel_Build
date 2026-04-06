@@ -143,7 +143,8 @@ jobs:
         run: |
           cd ${{ env.WORKDIR }}/sm8650-devicetrees
           echo "开始执行源码级物理短接..."
-          sed -i '/OPLUS_DTS_OVERLAY/d' Makefile
+          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/oplus_dtb.ptach
+          patch -p1 < oplus_dtb.ptach
           # 严谨起见，顺手查个岗，看看是不是真的篡改成功了
           
       - name: 开始编译内核 (火力全开)
@@ -197,6 +198,7 @@ jobs:
           # 备份地图文件，方便后续排错或 depmod
           cp out/System.map out/install_modules/
           cp out/dtbo.img out/install_modules/
+          cp .config out/install_modules/
           zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/
 
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
