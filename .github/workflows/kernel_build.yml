@@ -167,7 +167,8 @@ jobs:
           # 第二步：建立临时集结营
           # 在 out 目录下建个专属文件夹，免得一堆文件混在一起看着头大
           STAGING_DIR="out/dtbo_staging"
-          mkdir -p $STAGING_DIR
+          STAGING_DIR_DTB="out/dtb_stagin"
+          mkdir -p $STAGING_DIR $STAGING_DIR_DTB
           # 第三步：地毯式搜索与转移
           # 带着怀疑的态度，我们把 .dtbo 和 .dtb 都扫一遍（因为不同厂商的 vendor 树最终产物后缀可能略有不同）
           # 找到后直接 cp 复制到集结营里
@@ -186,7 +187,15 @@ jobs:
           # 用 python3 运行脚本，把集结营里的所有碎片强行压缩成一个完整的 img
           python3 mkdtboimg.py create out/dtbo.img --page_size=4096 $STAGING_DIR/*
           echo "大功告成！dtbo.img 已经安详地躺在 out/ 目录下了，就等你刷了！"
-          find out/arch/arm64/boot/dts/ -name ".dtb" -type f -exec mv -t out/install_modules/ {} +
+          find out/arch/arm64/boot/dts/ -type f -name "*.dtb" -exec cp {} $STAGING_DIR_DTB/ \;
+          FILE_COUNT_DTB=$(ls -1 $STAGING_DIR_DTB | wc -l)
+          if [ "$FILE_COUNT_DTB" -eq 0 ]; then
+             echo "见鬼了，集结营里空空如也！一个 dtb 都没搜到！"
+             echo "你的 make 步骤绝对没把 vendor tree 编出来，赶紧去查前面的编译日志！"
+              exit 1
+          fi
+             echo "漂亮！成功抓获 $FILE_COUNT_DTB 个设备树碎片，准备执行缝合！"
+          python3 mkdtboimg.py create out/dtb.img --page_size=4096 $STAGING_DIR_DTB/*
 
       - name: 提取驱动模块 (Modules)
         run: |
@@ -198,7 +207,8 @@ jobs:
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
           # 备份地图文件，方便后续排错或 depmod
           cp out/System.map out/install_modules/
-          cp out/dtbo.img out/install_modules/
+          cp out/*.img out/install_modules/
+          cp $STAGING_DIR_DTB /out/install_modules/
           cp out/.config out/install_modules/
           zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/
 
