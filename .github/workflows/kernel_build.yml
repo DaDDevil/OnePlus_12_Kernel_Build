@@ -212,9 +212,9 @@ jobs:
           done
           # 4. 严谨查岗，看看抓到了几个
           echo "================ 抓捕结果核对 ================"
-          ls -lh out_dtb_target/
+          ls -lh out/out_dtb_target/
           echo "抓捕总数："
-          ls -1 out_dtb_target/ | wc -l
+          ls -1 out/out_dtb_target/ | wc -l
           
       - name: 提取驱动模块 (Modules)
         run: |
