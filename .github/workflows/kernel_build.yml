@@ -148,7 +148,7 @@ jobs:
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
-          git clone --depth=1 https://github.com/cctv18/AnyKernel3
+          git clone --depth=1 https://github.com/cctv18/AnyKernel3.git
           
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image AnyKernel3/
