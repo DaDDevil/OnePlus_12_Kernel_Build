@@ -155,7 +155,8 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
-          zip -r9y ./OnePlus12-Kernel-AK3.zip ./AnyKernel3/*
+          cd ./AnyKernel3
+          zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
       - name: 🚀 发布最终成品
         uses: actions/upload-artifact@v4
