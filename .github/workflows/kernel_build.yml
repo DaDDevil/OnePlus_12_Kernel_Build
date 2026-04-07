@@ -148,18 +148,17 @@ jobs:
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
-          git clone --depth=1 https://github.com/cctv18/AnyKernel3.git
+          git clone --depth=1 https://github.com/cctv18/AnyKernel3.git AnyKernel3
           
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image AnyKernel3/
-          
-          cd AnyKernel3
+      
           # 2. 关闭设备检查机制
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           
           # 3. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
-          rm -rf .git README.md
-          zip -r9y ../OnePlus12-Kernel-AK3.zip ./AnyKernel3
+          rm -rf ./AnyKernel3/.git README.md
+          zip -r9y ./OnePlus12-Kernel-AK3.zip ./AnyKernel3/*
 
       - name: 🚀 发布最终成品
         uses: actions/upload-artifact@v4
