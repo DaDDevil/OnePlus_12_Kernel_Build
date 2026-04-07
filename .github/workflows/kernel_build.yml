@@ -12,9 +12,6 @@ on:
       kernel_devicetrees_repo:
         description: '请输入内核devicetrees源码仓库地址:'
         required: true
-      kernel_defconfig:
-        description: '请输入你要编译的配置文件 (可留空):'
-        required: false
 
 # 核心环境变量，一次定义，全局通用
 env:
@@ -94,17 +91,17 @@ jobs:
           sed -i 's/-dirty//g' scripts/setlocalversion
           
           # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
-          #cat << 'EOF' > patch_sig.py
-          #import re
-          #with open('kernel/module/signing.c', 'r') as f:
-          #    content = f.read()
+          cat << 'EOF' > patch_sig.py
+          import re
+          with open('kernel/module/signing.c', 'r') as f:
+              content = f.read()
           # 强行把函数体替换为直接放行
-          #content = re.sub(r'int module_sig_check\(.*?\)\s*\{.*?\n\}', 'int module_sig_check(struct load_info *info, int flags) {\n\tinfo->sig_ok = true;\n\treturn 0;\n}', content, flags=re.DOTALL)
-          #with open('kernel/module/signing.c', 'w') as f:
-          #    f.write(content)
-          #EOF
-          #python3 patch_sig.py
-          #echo "✅ 签名保护已物理拆除"
+          content = re.sub(r'int module_sig_check\(.*?\)\s*\{.*?\n\}', 'int module_sig_check(struct load_info *info, int flags) {\n\tinfo->sig_ok = true;\n\treturn 0;\n}', content, flags=re.DOTALL)
+          with open('kernel/module/signing.c', 'w') as f:
+              f.write(content)
+          EOF
+          python3 patch_sig.py
+          echo "✅ 签名保护已物理拆除"
 
       - name: 🛠️ 植入 Gunyah,Docker 终极修复补丁
         run: |
@@ -148,20 +145,10 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
-      
-      - name: 提取驱动模块 (Modules)
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          mkdir -p install_modules
-          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=install_modules modules_install
-          # 精简调试信息，减小体积
-          find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
-          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/
-
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
-          git clone --depth=1 https://github.com/osm0sis/AnyKernel3.git AnyKernel3
+          git clone --depth=1 https://github.com/cctv18/AnyKernel3
           
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image AnyKernel3/
@@ -170,13 +157,9 @@ jobs:
           # 2. 关闭设备检查机制
           sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
           
-          # 3. 解决 Busybox 报错的核心逻辑：恢复工具目录的执行权限
-          chmod -R 755 tools/
-          chmod -R 755 META-INF/
-          
-          # 4. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
+          # 3. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf .git README.md
-          zip -r9y ../OnePlus12-Kernel-AK3.zip ./*
+          zip -r9y ../OnePlus12-Kernel-AK3.zip ./AnyKernel3
 
       - name: 🚀 发布最终成品
         uses: actions/upload-artifact@v4
@@ -184,5 +167,4 @@ jobs:
           name: OnePlus12-Kernel-Build
           path: |
             ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
-            ${{ env.WORKDIR }}/kernel_ko.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
