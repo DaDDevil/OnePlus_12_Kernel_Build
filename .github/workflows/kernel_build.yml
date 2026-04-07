@@ -138,14 +138,6 @@ jobs:
           ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
           # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
           ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
-
-      - name: 暴力短接 OPLUS 设备树开关
-        run: |
-          cd ${{ env.WORKDIR }}/sm8650-devicetrees
-          echo "开始执行源码级物理短接..."
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/oplus_dtb.ptach
-          patch -p1 < oplus_dtb.ptach
-          # 严谨起见，顺手查个岗，看看是不是真的篡改成功了
           
       - name: 开始编译内核 (火力全开)
         run: |
@@ -156,66 +148,7 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
-      - name: 收集设备树碎片并打包 dtbo.img
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          echo "开始流水线作业：手搓 dtbo 镜像..."
-          # 第一步：获取“缝合神器”
-          # 从 Google 官方仓库拉取专门用来打包 dtbo 的 Python 脚本
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/mkdtboimg.py -O mkdtboimg.py
-          chmod +x mkdtboimg.py
-          # 第二步：建立临时集结营
-          # 在 out 目录下建个专属文件夹，免得一堆文件混在一起看着头大
-          STAGING_DIR="out/dtbo_staging"
-          STAGING_DIR_DTB="out/dtb_stagin"
-          mkdir -p $STAGING_DIR $STAGING_DIR_DTB
-          # 第三步：地毯式搜索与转移
-          # 带着怀疑的态度，我们把 .dtbo 和 .dtb 都扫一遍（因为不同厂商的 vendor 树最终产物后缀可能略有不同）
-          # 找到后直接 cp 复制到集结营里
-          echo "正在全图搜索设备树碎片..."
-          find out/arch/arm64/boot/dts/ -type f -name "*.dtbo" -exec cp {} $STAGING_DIR/ \;
-          # 第四步：点验战利品（防暴毙检查）
-          # 严谨起见，查一下到底有没有文件。如果没搜到，直接报错中断，别让后面刷进去个空包
-          FILE_COUNT=$(ls -1 $STAGING_DIR | wc -l)
-          if [ "$FILE_COUNT" -eq 0 ]; then
-             echo "见鬼了，集结营里空空如也！一个 dtbo 都没搜到！"
-             echo "你的 make 步骤绝对没把 vendor tree 编出来，赶紧去查前面的编译日志！"
-              exit 1
-          fi
-             echo "漂亮！成功抓获 $FILE_COUNT 个设备树碎片，准备执行缝合！"
-          # 第五步：终极打包打击
-          # 用 python3 运行脚本，把集结营里的所有碎片强行压缩成一个完整的 img
-          python3 mkdtboimg.py create out/dtbo.img --page_size=4096 $STAGING_DIR/*
-          echo "大功告成！dtbo.img 已经安详地躺在 out/ 目录下了，就等你刷了！"
-          find out/arch/arm64/boot/dts/ -type f -name "*.dtb" -exec cp {} $STAGING_DIR_DTB/ \;
-          FILE_COUNT_DTB=$(ls -1 $STAGING_DIR_DTB | wc -l)
-          if [ "$FILE_COUNT_DTB" -eq 0 ]; then
-             echo "见鬼了，集结营里空空如也！一个 dtb 都没搜到！"
-             echo "你的 make 步骤绝对没把 vendor tree 编出来，赶紧去查前面的编译日志！"
-              exit 1
-          fi
-             echo "漂亮！成功抓获 $FILE_COUNT_DTB 个设备树碎片，准备执行缝合！"
-          #python3 mkdtboimg.py create out/dtb.img --page_size=4096 $STAGING_DIR_DTB/*
-
-      - name: 精准提取基础 DTB 碎片
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          echo "开始执行斩首行动，从 397 个嫌疑人里揪出那 6 个天命之子..."
-          # 1. 建立一个干净的集结点
-          mkdir -p out/out_dtb_target
-          # 2. 下达通缉名单
-          TARGETS="pineapple.dtb pineapple-v2.dtb cliffs.dtb cliffs7.dtb pineapplep.dtb pineapplep-v2.dtb"
-          # 3. 带着怀疑的态度，全盘搜索并抓取，防止路径玄学
-          for target in $TARGETS; do
-              echo "正在搜捕: $target"
-              find out/arch/arm64/boot/dts/ -type f -name "$target" -exec cp {} out_dtb_target/ \;
-          done
-          # 4. 严谨查岗，看看抓到了几个
-          echo "================ 抓捕结果核对 ================"
-          ls -lh out/out_dtb_target/
-          echo "抓捕总数："
-          ls -1 out/out_dtb_target/ | wc -l
-          
+      
       - name: 提取驱动模块 (Modules)
         run: |
           cd ${{ env.KERNEL_DIR }}
@@ -223,11 +156,6 @@ jobs:
           make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=install_modules modules_install
           # 精简调试信息，减小体积
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
-          # 备份地图文件，方便后续排错或 depmod
-          cp out/Module.symvers out/install_modules/
-          cp out/System.map out/install_modules/
-          #cp out/out_dtb_target/* out/install_modules/
-          cp out/.config out/install_modules/
           zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/
 
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
