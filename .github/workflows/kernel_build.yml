@@ -151,12 +151,9 @@ jobs:
           git clone --depth=1 https://github.com/cctv18/AnyKernel3.git AnyKernel3
           
           # 1. 拷贝内核到 AK3
-          cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image AnyKernel3/
+          cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image ./AnyKernel3/
       
-          # 2. 关闭设备检查机制
-          sed -i 's/do.devicecheck=1/do.devicecheck=0/g' anykernel.sh
-          
-          # 3. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
+          # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
           zip -r9y ./OnePlus12-Kernel-AK3.zip ./AnyKernel3/*
 
