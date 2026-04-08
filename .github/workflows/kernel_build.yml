@@ -2,33 +2,23 @@ name: OP12_Kernel_Build_Optimized
 
 on: 
   workflow_dispatch: 
-    inputs:
-      kernel_repo:
-        description: '请输入内核源码仓库地址:'
-        required: true
-      kernel_vendor_repo:
-        description: '请输入内核vendor源码仓库地址:'
-        required: true
-      kernel_devicetrees_repo:
-        description: '请输入内核devicetrees源码仓库地址:'
-        required: true
 
 # 核心环境变量，一次定义，全局通用
 env:
-  WORKDIR: /home/runner
-  KERNEL_DIR: /home/runner/android_kernel_oneplus_sm8650
-  CLANG_DIR: /home/runner/aosp_clang
   CCACHE_DIR: /home/runner/.ccache
-  # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
-  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
-
+  KERNEL_MSM_DIR: /home/runner/workspace/kernel_platform/msm-kernel
+  KERNEL_COMMON_DIR: /home/runner/workspace/kernel_platform/
+  
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 释放磁盘空间 (The Purge)
+      - name: 极其残暴地清理磁盘空间
         run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost /usr/share/swift
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+          docker rmi $(docker image ls -aq)
+          sudo apt-get clean
+
           
       - name: 设置虚拟内存 (Swap)
         uses: pierotofy/set-swap-space@v1.0
@@ -55,17 +45,16 @@ jobs:
           # 把缓存上限从默认的 500M 强行拉爆到 5GB
           ccache -M 5G
 
-
-      - name: 下载并配置 Clang 编译器
+      - name: 拉取内核源码 && 编译工具 && 内核补丁
         run: |
-          cd ${{ env.WORKDIR }}
-          wget -q https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15071444/clang-r596125.tar.gz
-          mkdir -p ${{ env.CLANG_DIR }}
-          tar -zxf clang-r596125.tar.gz -C ${{ env.CLANG_DIR }}
-          # 直接将 clang 的 bin 目录和 ccache 注入环境变量
-          echo "PATH=${{ env.CLANG_DIR }}/bin:/usr/lib/ccache:$PATH" >> $GITHUB_ENV
-          echo "✅ 编译器部署完毕"
-
+          mkdir workspace && cd workspace
+          repo init -u https://github.com/DaDDevil/OnePlus_12_Kernel_Build.git -b bazel -m oneplus_12_b.xml --depth=1
+          repo sync -c -j8 --no-clone-bundle --no-tags
+          # 内核补丁
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch ${{ env.KERNEL_DIR }}
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch ${{ env.KERNEL_DIR }}
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch ${{ env.KERNEL_DIR }}
+      
       - name: 拉取内核源码 (精准对齐软链接)
         run: |
           cd ${{ env.WORKDIR }}
