@@ -7,7 +7,7 @@ on:
 env:
   CCACHE_DIR: /home/runner/.ccache
   KERNEL_MSM_DIR: /home/runner/workspace/kernel_platform/msm-kernel
-  KERNEL_COMMON_DIR: /home/runner/workspace/kernel_platform/
+  KERNEL_COMMON_DIR: /home/runner/workspace/kernel_platform/common
   
 jobs:
   build:
@@ -51,35 +51,23 @@ jobs:
           repo init -u https://github.com/DaDDevil/OnePlus_12_Kernel_Build.git -b bazel -m oneplus_12_b.xml --depth=1
           repo sync -c -j8 --no-clone-bundle --no-tags
           # 内核补丁
-          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch ${{ env.KERNEL_DIR }}
-          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch ${{ env.KERNEL_DIR }}
-          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch ${{ env.KERNEL_DIR }}
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch ${{ env.KERNEL_COMMON_DIR }}
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch ${{ env.KERNEL_COMMON_DIR }}
+          https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch ${{ env.KERNEL_COMMON_DIR }}
+          cd ${{ env.KERNEL_COMMON_DIR}}
+          for i in *.patch; do patch -p1 < "$i"; done
       
-      - name: 拉取内核源码 (精准对齐软链接)
-        run: |
-          cd ${{ env.WORKDIR }}
-          # 逻辑重构：git clone 时直接指定目标文件夹名字，一步剥离 "android_kernel_oneplus_" 前缀
-          # 且让这三个仓库在 /home/runner/ 下保持绝对的平级关系，完美修复 ../ 软链接指向
-          git clone --depth=1 ${{ github.event.inputs.kernel_repo }} android_kernel_oneplus_sm8650
-          git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }} sm8650-modules
-          git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }} sm8650-devicetrees
-          echo "✅ 源码拉取完毕，平级目录结构就绪"
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
-
       - name: 安装 KernelSU_Next
         run: |
-          cd ${{ env.KERNEL_DIR }}
+          cd ${{ env.KERNEL_COMMON_DIR }}
           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
 
       - name: 源码级修复与“上帝模式”破解
         run: |
-          cd ${{ env.KERNEL_DIR }}
-          # 1. 修复 Tracepoint 相对路径问题
-          sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
-          # 2. 洗白内核版本号后缀
+          cd ${{ env.KERNEL_COMMON_DIR }}
+          # 1. 洗白内核版本号后缀
           sed -i 's/-dirty//g' scripts/setlocalversion
-          
-          # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
+          # 2. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
           cat << 'EOF' > patch_sig.py
           import re
           with open('kernel/module/signing.c', 'r') as f:
@@ -92,39 +80,12 @@ jobs:
           python3 patch_sig.py
           echo "✅ 签名保护已物理拆除"
           rm -rf ./android/abi_gki_protected_exports_*
-
-      - name: 🛠️ 植入 Gunyah,Docker 终极修复补丁
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
-          for i in *.patch; do patch -p1 < "$i"; done
+          rm -rf ${{ env.KERNEL_MSM_DIR}}/android/abi_gki_protected_exports_*
       
       - name: 配置内核并注入 Docker 选项
         run: |
-          cd ${{ env.KERNEL_DIR }}
-          # 基础配置
-          make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
+          cd ${{ env.KERNEL_MSM_DIR }}
           
-          # 注入 Docker/LXC 所需配置
-          #./scripts/config --file out/.config -e NAMESPACES -e UTS_NS -e IPC_NS -e USER_NS -e PID_NS -e NET_NS
-          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e NETFILTER_XT_MATCH_ADDRTYPE -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e CGROUP_PIDS
-          #./scripts/config --file out/.config -e SYSCTL -e SYSVIPC -e POSIX_MQUEUE -e DEVTMPFS -e CGROUP_DEVICE
-          #./scripts/config --file out/.config -e NETFILTER_XT_MATCH_ADDRTYPE -e NETFILTER_XT_MATCH_CONNTRACK -e NETFILTER_XT_MATCH_IPVS -e NETFILTER_XT_MARK
-          #./scripts/config --file out/.config -e IP_NF_NAT -e IP_NF_TARGET_MASQUERADE -e IP_NF_FILTER
-          #./scripts/config --file out/.config -e OVERLAY_FS -e SECCOMP -e POSIX_MQUEUE -e KEYS
-          # 应用并补全依赖
-          #make ${{ env.MAKE_ENV }} olddefconfig
-          echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
-          # 开启透明大页核心支持
-          ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
-          # 建议设为 MADVISE (按需分配)，而不是 ALWAYS，避免宿主机日常使用内存爆炸
-          ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
-          # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
-          ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
           
       - name: 开始编译内核 (火力全开)
         run: |
