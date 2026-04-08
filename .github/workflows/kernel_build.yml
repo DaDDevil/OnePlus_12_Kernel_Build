@@ -8,6 +8,7 @@ env:
   CCACHE_DIR: /home/runner/.ccache
   KERNEL_MSM_DIR: /home/runner/workspace/kernel_platform/msm-kernel
   KERNEL_COMMON_DIR: /home/runner/workspace/kernel_platform/common
+  WORK_DIR: /home/runner/workspace/kernel_platform
   
 jobs:
   build:
@@ -48,7 +49,7 @@ jobs:
       - name: 拉取内核源码 && 编译工具 && 内核补丁
         run: |
           mkdir workspace && cd workspace
-          repo init -u https://github.com/DaDDevil/OnePlus_12_Kernel_Build.git -b bazel -m oneplus_12_b.xml --depth=1
+          repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus_12_b.xml --depth=1
           repo sync -c -j8 --no-clone-bundle --no-tags
           # 内核补丁
           https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch ${{ env.KERNEL_COMMON_DIR }}
@@ -84,35 +85,25 @@ jobs:
       
       - name: 配置内核并注入 Docker 选项
         run: |
-          cd ${{ env.KERNEL_MSM_DIR }}
-          
+          cd ${{ env.KERNEL_MSM_DIR }}/arch/arm64/configs/vendor
+          wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/bazel/additional_features.config
+          cat additional_features.config >> pineapple_GKI.config
           
       - name: 开始编译内核 (火力全开)
         run: |
-          cd ${{ env.KERNEL_DIR }}
-          echo "CONFIG_WAFFLE_DTB=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
-          echo "CONFIG_OPLUS_DEVICE_DTBS=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
+          cd ${{ env.WORK_DIR }}
           ccache -z # 归零缓存统计
-          make ${{ env.MAKE_ENV }} -j$(nproc)
-          ccache -s # 打印缓存命中率
-
+          ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
+          
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
-          cd ${{ env.WORKDIR }}
-          git clone --depth=1 https://github.com/cctv18/AnyKernel3.git AnyKernel3
-          
-          # 1. 拷贝内核到 AK3
-          cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image ./AnyKernel3/
-      
-          # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
-          rm -rf ./AnyKernel3/.git README.md
-          cd ./AnyKernel3
-          zip -r9y ../OnePlus12-Kernel-AK3.zip *
+          cd ${{ env.WORK_DIR }}/out/
+          zip -r9y ../flasher.zip *
 
       - name: 🚀 发布最终成品
         uses: actions/upload-artifact@v4
         with:
           name: OnePlus12-Kernel-Build
           path: |
-            ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
+            ${{ env.WORK_DIR }}/flasher.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
