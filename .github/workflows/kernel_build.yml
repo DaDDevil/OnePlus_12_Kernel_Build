@@ -29,7 +29,7 @@ jobs:
       - name: 安装环境依赖 (带 ccache)
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc build-essential git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils ccache
+          sudo apt-get install -y bc git wget flex bison libssl-dev libelf-dev clang lld llvm python3 dwarves cpio xz-utils ccache
           
       - name: 配置 CCache 编译缓存 (提速神器)
         uses: actions/cache@v4
