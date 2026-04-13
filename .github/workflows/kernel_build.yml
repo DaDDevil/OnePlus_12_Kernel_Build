@@ -146,14 +146,14 @@ jobs:
       - name: 提取驱动模块 (Modules)
         run: |
           cd ${{ env.KERNEL_DIR }}
-          mkdir -p install_modules
-          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=install_modules modules_install
+          mkdir -p out/install_modules
+          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=out/install_modules modules_install
           
           # 精简调试信息，减小体积
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
           # 备份地图文件，方便后续排错或 depmod
-          cp out/System.map install_modules/
-          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip install_modules/*
+          cp out/System.map out/install_modules/
+          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/*
       
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
