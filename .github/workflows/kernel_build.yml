@@ -148,8 +148,6 @@ jobs:
           cd ${{ env.KERNEL_DIR }}
           mkdir -p out/dist
           make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=out/dist modules_install
-          cd out/dist
-          zip -r9y ../../kernel_modules.zip ${{ env.KERNEL_DIR }}/out/dist/*
           
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
@@ -161,6 +159,7 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
+          mv ${{ env.KERNEL_DIR }}/out/dist AnyKernel3/
           cd ./AnyKernel3
           zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
