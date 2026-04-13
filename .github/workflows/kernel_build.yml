@@ -153,7 +153,7 @@ jobs:
           find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
           # 备份地图文件，方便后续排错或 depmod
           cp out/System.map out/install_modules/
-          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/install_modules/*
+          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip out/*
       
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
