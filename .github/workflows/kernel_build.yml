@@ -143,12 +143,18 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
-      - name: 收集ko模块
+      - name: 提取驱动模块 (Modules)
         run: |
           cd ${{ env.KERNEL_DIR }}
-          mkdir -p out/dist
-          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=out/dist modules_install
+          mkdir -p install_modules
+          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=install_modules modules_install
           
+          # 精简调试信息，减小体积
+          find . -name "*.ko" -exec ${{env.CLANG_DIR}}/bin/llvm-strip --strip-debug {} +
+          # 备份地图文件，方便后续排错或 depmod
+          cp out/System.map install_modules/
+          zip -r9y ${{ env.WORKDIR }}/kernel_ko.zip install_modules/*
+      
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
@@ -159,8 +165,6 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
-          find . -name "*.ko" -type f -exec mv -t ${{ env.KERNEL_DIR }}/out/dist/ {} +
-          cp ${{ env.KERNEL_DIR }}/out/dist/ AnyKernel3/
           cd ./AnyKernel3
           zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
@@ -170,5 +174,5 @@ jobs:
           name: OnePlus12-Kernel-Build
           path: |
             ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
-            ${{ env.KERNEL_DIR }}/kernel_modules.zip
+            ${{ env.WORKDIR }}/kernel_modules.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
