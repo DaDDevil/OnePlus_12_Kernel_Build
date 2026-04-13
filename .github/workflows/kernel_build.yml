@@ -143,56 +143,7 @@ jobs:
           ccache -z # 归零缓存统计
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
-
-      - name: 收集 dtb && dtbo
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          # --- 配置区 ---
-          # 收集后的目标目录
-          DEST_DIR="out/collected_dtb_pack"
-          # 内核编译的输出根目录 (根据你 Action 或本地环境调整)
-          SEARCH_ROOT="out/arch/arm64/boot/dts/vendor"
-
-          # 创建目录
-          mkdir -p "$DEST_DIR"
-
-          # 待收集的文件列表 (从你的 Makefile 片段提取)
-          FILES=(
-               "pineapple.dtb"
-               "pineapple-v2.dtb"
-               "cliffs.dtb"
-               "cliffs7.dtb"
-               "pineapplep.dtb"
-               "pineapplep-v2.dtb"
-               "waffle-22825-pineapple-overlay.dtbo"
-               "waffle-22825-pineapple-overlay-EVB.dtbo"
-               "waffle-22825-pineapple-overlay-EVT1.dtbo"
-               "waffle-22877-pineapple-overlay.dtbo"
-               "waffle-22877-pineapple-overlay-EVB.dtbo"
-               "waffle-22877-pineapple-overlay-EVT1.dtbo"
-           )
-
-           echo "📂 开始收集 DTB/DTBO 到: $DEST_DIR"
-
-           # --- 执行逻辑 ---
-           count=0
-           for name in "${FILES[@]}"; do
-           # 使用 find 搜索，防止路径套娃
-           found_file=$(find "$SEARCH_ROOT" -name "$name" -type f | head -n 1)
-    
-               if [ -n "$found_file" ]; then
-                   cp "$found_file" "$DEST_DIR/"
-                   echo "✅ [已找到] $name"
-                   ((count++))
-               else
-                   echo "❌ [未找到] $name"
-               fi
-               done
-
-            echo "--------------------------------------"
-            echo "🎉 收集完成！共计: $count/${#FILES[@]} 个文件。"
-
-
+          
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
@@ -203,7 +154,6 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
-          zip -r9y dtb_dtbo.zip ${{ env.KERNEL_DIR }}/out/collected_dtb_pack/*
           cd ./AnyKernel3
           zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
@@ -213,5 +163,4 @@ jobs:
           name: OnePlus12-Kernel-Build
           path: |
             ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
-            ${{ env.WORKDIR }}/dtb_dtbo.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
