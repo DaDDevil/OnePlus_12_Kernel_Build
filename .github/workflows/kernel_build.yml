@@ -123,7 +123,7 @@ jobs:
           sed -i 's/CONFIG_PANIC_TIMEOUT=-1/CONFIG_PANIC_TIMEOUT=5/g' out/.config
           sed -i 's/cgroup_disable=pressure //g' out/.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
+          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE -e CGROUP_PIDS -e CGROUP_DEVICE
           #./scripts/config --file out/.config -e IP_SCTP -e IP_VS -e IP_VS_NFCT -e IP_VS_PROTO_TCP -e IP_VS_PROTO_UDP -e IP_VS_RR -e NFT_CT -e NFT_MASQ -e NFT_NAT
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
@@ -143,6 +143,13 @@ jobs:
           ccache -z # 归零缓存统计
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
+
+      - name: 收集ko模块
+        run: |
+          cd ${{ env.KERNEL_DIR }}
+          mkdir -p out/dist
+          make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=out/dist modules_install
+          zip -r9y ./kernel_modules.zip out/dist/*
           
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
@@ -163,4 +170,5 @@ jobs:
           name: OnePlus12-Kernel-Build
           path: |
             ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
+            ${{ env.KERNEL_DIR }}/kernel_modules.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
