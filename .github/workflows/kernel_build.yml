@@ -75,7 +75,6 @@ jobs:
           git clone --depth=1 ${{ github.event.inputs.kernel_vendor_repo }} sm8650-modules
           git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }} sm8650-devicetrees
           echo "✅ 源码拉取完毕，平级目录结构就绪"
-          wget https://raw.githubusercontent.com/DaDDevil/android_kernel_oneplus_sm8650/refs/heads/main/gunyah_memory_fix.patch
 
       - name: 安装 KernelSU_Next
         run: |
@@ -104,7 +103,7 @@ jobs:
           echo "✅ 签名保护已物理拆除"
           rm -rf ./android/abi_gki_protected_exports_*
 
-      - name: 🛠️ 植入 Gunyah,Docker 终极修复补丁
+      - name: 🛠️ 植入 Docker 终极修复补丁
         run: |
           cd ${{ env.KERNEL_DIR }}
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
