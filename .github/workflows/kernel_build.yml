@@ -102,6 +102,7 @@ jobs:
           python3 patch_sig.py
           echo "✅ 签名保护已物理拆除"
           rm -rf ./android/abi_gki_protected_exports_*
+          sed -i '2748a \nflags |= MODULE_INIT_IGNORE_MODVERSIONS;\nflags |= MODULE_INIT_IGNORE_VERMAGIC;\n' kernel/module/main.c
 
       - name: 🛠️ 植入 Docker 终极修复补丁
         run: |
