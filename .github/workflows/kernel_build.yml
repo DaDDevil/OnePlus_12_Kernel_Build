@@ -123,8 +123,8 @@ jobs:
           sed -i 's/CONFIG_PANIC_TIMEOUT=-1/CONFIG_PANIC_TIMEOUT=5/g' out/.config
           sed -i 's/cgroup_disable=pressure //g' out/.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e NETFILTER_XT_MATCH_IPVS -e IP6_NF_TARGET_MASQUERADE
-          ./scripts/config --file out/.config -e IP_SCTP -e IP_VS -e IP_VS_NFCT -e IP_VS_PROTO_TCP -e IP_VS_PROTO_UDP -e IP_VS_RR -e NFT_CT -e NFT_MASQ -e NFT_NAT
+          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
+          #./scripts/config --file out/.config -e IP_SCTP -e IP_VS -e IP_VS_NFCT -e IP_VS_PROTO_TCP -e IP_VS_PROTO_UDP -e IP_VS_RR -e NFT_CT -e NFT_MASQ -e NFT_NAT
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
           echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
@@ -144,6 +144,55 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
+      - name: 收集 dtb && dtbo
+        run: |
+          cd ${{ env.KERNEL_DIR }}
+          # --- 配置区 ---
+          # 收集后的目标目录
+          DEST_DIR="out/collected_dtb_pack"
+          # 内核编译的输出根目录 (根据你 Action 或本地环境调整)
+          SEARCH_ROOT="out/arch/arm64/boot/dts/vendor"
+
+          # 创建目录
+          mkdir -p "$DEST_DIR"
+
+          # 待收集的文件列表 (从你的 Makefile 片段提取)
+          FILES=(
+               "pineapple.dtb"
+               "pineapple-v2.dtb"
+               "cliffs.dtb"
+               "cliffs7.dtb"
+               "pineapplep.dtb"
+               "pineapplep-v2.dtb"
+               "waffle-22825-pineapple-overlay.dtbo"
+               "waffle-22825-pineapple-overlay-EVB.dtbo"
+               "waffle-22825-pineapple-overlay-EVT1.dtbo"
+               "waffle-22877-pineapple-overlay.dtbo"
+               "waffle-22877-pineapple-overlay-EVB.dtbo"
+               "waffle-22877-pineapple-overlay-EVT1.dtbo"
+           )
+
+           echo "📂 开始收集 DTB/DTBO 到: $DEST_DIR"
+
+           # --- 执行逻辑 ---
+           count=0
+           for name in "${FILES[@]}"; do
+           # 使用 find 搜索，防止路径套娃
+           found_file=$(find "$SEARCH_ROOT" -name "$name" -type f | head -n 1)
+    
+               if [ -n "$found_file" ]; then
+                   cp "$found_file" "$DEST_DIR/"
+                   echo "✅ [已找到] $name"
+                   ((count++))
+               else
+                   echo "❌ [未找到] $name"
+               fi
+               done
+
+            echo "--------------------------------------"
+            echo "🎉 收集完成！共计: $count/${#FILES[@]} 个文件。"
+
+
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
@@ -154,6 +203,7 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
+          zip -r9y dtb_dtbo.zip ${{ env.KERNEL_DIR }}/out/collected_dtb_pack/*
           cd ./AnyKernel3
           zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
@@ -163,4 +213,5 @@ jobs:
           name: OnePlus12-Kernel-Build
           path: |
             ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
+            ${{ env.WORKDIR }}/dtb_dtbo.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
