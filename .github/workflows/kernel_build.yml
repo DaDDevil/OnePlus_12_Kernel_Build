@@ -159,7 +159,8 @@ jobs:
       
           # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
-          mv ${{ env.KERNEL_DIR }}/out/dist AnyKernel3/
+          find . -name "*.ko" -type f -exec mv -t ${{ env.KERNEL_DIR }}/out/dist/ {} +
+          mv ${{ env.KERNEL_DIR }}/out/dist/ AnyKernel3/
           cd ./AnyKernel3
           zip -r9y ../OnePlus12-Kernel-AK3.zip *
 
