@@ -122,7 +122,7 @@ jobs:
           sed -i 's/CONFIG_PANIC_TIMEOUT=-1/CONFIG_PANIC_TIMEOUT=5/g' out/.config
           sed -i 's/cgroup_disable=pressure //g' out/.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE -e CGROUP_PIDS -e CGROUP_DEVICE -e MODULE_FORCE_LOAD=y
+          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE -e MODULE_FORCE_LOAD=y
           #./scripts/config --file out/.config -e IP_SCTP -e IP_VS -e IP_VS_NFCT -e IP_VS_PROTO_TCP -e IP_VS_PROTO_UDP -e IP_VS_RR -e NFT_CT -e NFT_MASQ -e NFT_NAT
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
