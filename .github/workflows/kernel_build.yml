@@ -148,7 +148,8 @@ jobs:
           cd ${{ env.KERNEL_DIR }}
           mkdir -p out/dist
           make ${{ env.MAKE_ENV }} INSTALL_MOD_PATH=out/dist modules_install
-          zip -r9y ./kernel_modules.zip out/dist/
+          cd out/dist
+          zip -r9y ../../kernel_modules.zip *
           
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
