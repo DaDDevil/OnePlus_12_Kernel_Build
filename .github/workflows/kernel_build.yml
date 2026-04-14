@@ -88,6 +88,7 @@ jobs:
           sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
           # 2. 洗白内核版本号后缀
           sed -i 's/-dirty//g' scripts/setlocalversion
+          sed -i 's/CONFIG_LOG_BUF_SHIFT=17/CONFIG_LOG_BUF_SHIFT=20/g' arch/arm64/configs/vendor/oplus/pineapple_GKI.config
           
           # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
           cat << 'EOF' > patch_sig.py
@@ -122,7 +123,7 @@ jobs:
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
-          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS
+          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e AUTOFDO_CLANG -e LTO_CLANG -e LTO_CLANG_THIN -e TMPFS_XATTR
 
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
@@ -137,7 +138,7 @@ jobs:
       - name: 开始编译内核 (火力全开)
         run: |
           cd ${{ env.KERNEL_DIR }}
-          echo "CONFIG_WAFFLE_DTB=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
+          echo "=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
           echo "CONFIG_OPLUS_DEVICE_DTBS=y" >> arch/arm64/configs/vendor/oplus/pineapple_GKI.config
           ccache -z # 归零缓存统计
           make ${{ env.MAKE_ENV }} -j$(nproc)
