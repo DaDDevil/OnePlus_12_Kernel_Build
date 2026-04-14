@@ -102,6 +102,8 @@ jobs:
           python3 patch_sig.py
           echo "✅ 签名保护已物理拆除"
           rm -rf ./android/abi_gki_protected_exports_*
+          rm -rf ./android/abi_gki_aarch64_qcom
+          rm -rf ./android/abi_gki_aarch64_oplus
 
       - name: 🛠️ 植入 Docker 终极修复补丁
         run: |
@@ -123,7 +125,8 @@ jobs:
           sed -i 's/cgroup_disable=pressure/androidboot.selinux=permissive/g' out/.config
           # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
-          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS
+          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e CGROUP_DEVICE -e CGROUP_PIDS
+
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
           echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
