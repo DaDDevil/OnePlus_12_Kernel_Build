@@ -171,6 +171,7 @@ jobs:
           [ "$(ls -A $KO_STAGING)" ] || { echo "❌ 没搜到 .ko 文件！检查你的 defconfig 是否全是 =y"; exit 1; }
 
           # 5. 压缩成独立的模块包
+          cp out/vmlinux "KO_STAGING"
           cd "$KO_STAGING"
           zip -r9y ${{ env.WORKDIR }}/main_kernel_ko.zip .
           
@@ -178,7 +179,7 @@ jobs:
         run: |
           cd ${{ env.WORKDIR }}
           git clone --depth=1 https://github.com/cctv18/AnyKernel3.git AnyKernel3
-          
+      
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image ./AnyKernel3/
       
