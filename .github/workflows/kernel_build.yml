@@ -14,13 +14,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 极其残暴地清理磁盘空间
-        run: |
-          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
-          docker rmi $(docker image ls -aq)
-          sudo apt-get clean
-
-          
+      - name: 释放磁盘空间
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+          android: false # 如果你不需要官方庞大的 Android SDK
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+        
       - name: 设置虚拟内存 (Swap)
         uses: pierotofy/set-swap-space@v1.0
         with:
