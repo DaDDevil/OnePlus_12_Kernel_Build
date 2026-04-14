@@ -168,8 +168,8 @@ jobs:
           [ "$(ls -A $KO_STAGING)" ] || { echo "❌ 没搜到 .ko 文件！检查你的 defconfig 是否全是 =y"; exit 1; }
 
           # 5. 压缩成独立的模块包
-          cp out/vmlinux "KO_STAGING"
           cd "$KO_STAGING"
+          cp ${{ env.KERNEL_DIR }}/out/vmlinux .
           zip -r9y ${{ env.WORKDIR }}/main_kernel_ko.zip .
           
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
