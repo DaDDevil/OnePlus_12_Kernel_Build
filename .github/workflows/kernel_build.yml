@@ -216,6 +216,7 @@ jobs:
                 QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=pineapple LTO=none"
             else
                 echo "▶️ 常规驱动，全速编译..."
+            done
 
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
             # 这行代码完美替代了复杂的依赖声明，只要前面编过的，后面的模块都能认出它的符号
