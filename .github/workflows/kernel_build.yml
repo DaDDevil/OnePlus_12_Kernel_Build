@@ -152,7 +152,6 @@ jobs:
           # 1. 核心目录映射
           export KERNEL_SRC="${{ env.KERNEL_DIR }}"
           export OUT_DIR="${{ env.KERNEL_DIR }}/out"
-          QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple"
           
           # 2. 定义缺失的树外模块列表 (严格按照依赖顺序排列)
           # 注意：基础模块(如 synx, mmrm)必须放在依赖它的模块(如 eva, camera)前面
@@ -184,7 +183,7 @@ jobs:
                        sm8650-modules/qcom/opensource/wlan/platform \
                        sm8650-modules/qcom/opensource/wlan/qcacld-3.0 \
                        sm8650-modules/qcom/opensource/bt-kernel \
-                       sm8650-modules/qcom/opensource/audio-kernel
+                       sm8650-modules/qcom/opensource/audio-kernel"
                        
           echo "🔍 准备就绪，开始执行官方 OOT 编译逻辑..."
 
@@ -192,6 +191,26 @@ jobs:
           for EXT_MOD in $EXT_MODULES; do
             echo "========================================================"
             echo " 🏗️ 正在编译: $EXT_MOD"
+
+            # 1. 绝对路径定义
+            MOD_PWD="${{ env.WORKDIR }}/$EXT_MOD"
+            
+            # 2. 基础高通参数
+            QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple"
+
+            # 3. 【黑科技】正则表达式动态提取 XXX_ROOT
+            # 扫描该模块的 Makefile 和 Kbuild，找出所有以 _ROOT 结尾的宏（如 WLAN_ROOT, AUDIO_ROOT）
+            DETECTED_ROOTS=$(grep -hoE '[A-Za-z0-9_]+_ROOT' "$MOD_PWD/Makefile" "$MOD_PWD/Kbuild" 2>/dev/null | sort -u)
+            
+            # 遍历提取到的宏，拼接到 QCOM_ARGS 里
+            if [ -n "$DETECTED_ROOTS" ]; then
+                for ROOT_VAR in $DETECTED_ROOTS; do
+                    QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD"
+                done
+                echo "🎯 动态侦测到专属参数: $QCOM_ARGS"
+            else
+                echo "ℹ️ 该模块无需特殊的 ROOT 路径"
+            fi
             
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
             # 这行代码完美替代了复杂的依赖声明，只要前面编过的，后面的模块都能认出它的符号
