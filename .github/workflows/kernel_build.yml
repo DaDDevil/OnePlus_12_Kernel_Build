@@ -213,9 +213,11 @@ jobs:
             fi
 
             if [[ "$EXT_MOD" == *"video-driver"* || "$EXT_MOD" == *"msm_video"* ]]; then
-                echo "🎬 侦测到视频驱动，注入硬件代号总开关 VIDEO_SELECT..."
-                # 直接传总开关，让高通的 Makefile 自己去展开那些 Volcano 和 Iris2
-                QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=pineapple"
+                echo "🎬 侦测到视频驱动，结合本地黄金参数与 Action 填坑宏..."
+                
+                # 1. 继承本地成功的路径推导 (VIDEO_ROOT, VIDEO_SELECT)
+                # 2. 强压旧硬件宏 (=y)，逼迫 Makefile 把被一加官方 .config 唤醒的旧函数全编出来填坑！
+                QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=pineapple CONFIG_MSM_VIDC_VOLCANO=y CONFIG_MSM_VIDC_IRIS2=y CONFIG_MSM_VIDC_PINEAPPLE=y"
             fi
             
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
