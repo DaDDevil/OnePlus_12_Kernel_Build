@@ -213,7 +213,7 @@ jobs:
             if [[ "$EXT_MOD" == *"video-driver"* || "$EXT_MOD" == *"msm_video"* ]]; then
                 echo "🎬 侦测到巨无霸视频驱动，开启绝对防爆模式 (关 LTO + 关缓存 + 降并发)..."
                 # 黄金参数组合 + 强压填坑宏 + 强关 LTO 释放内存
-                QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=CONFIG_MSM_VIDC_V4L2=m"
+                QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=CONFIG_MSM_VIDC_V4L2=m LTO=none"
             else
                 echo "▶️ 常规驱动，全速编译..."
             fi
