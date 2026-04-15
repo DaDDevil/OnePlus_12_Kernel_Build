@@ -215,8 +215,7 @@ jobs:
             if [[ "$EXT_MOD" == *"video-driver"* || "$EXT_MOD" == *"msm_video"* ]]; then
                 echo "🎬 侦测到视频驱动，注入硬件代号总开关 VIDEO_SELECT..."
                 # 直接传总开关，让高通的 Makefile 自己去展开那些 Volcano 和 Iris2
-                QCOM_ARGS="$QCOM_ARGS VIDEO_SELECT=pineapple"
-                QCOM_ARGS="$QCOM_ARGS CONFIG_MSM_VIDC_VOLCANO=y CONFIG_MSM_VIDC_IRIS2=y CONFIG_MSM_VIDC_PINEAPPLE=y"
+                QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple VIDEO_ROOT=$MOD_PWD VIDEO_SELECT=pineapple"
             fi
             
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
