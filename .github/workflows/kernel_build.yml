@@ -20,7 +20,7 @@ env:
   CLANG_DIR: /home/runner/aosp_clang
   CCACHE_DIR: /home/runner/.ccache
   # 把那一大串编译参数全部收拢为一个变量，并注入 ccache
-  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip HOSTCC="ccache clang" HOSTCXX="ccache clang++" HOSTLD=ld.lld CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="-Wno-error"
+  MAKE_ENV: ARCH=arm64 O=out LLVM=1 LLVM_IAS=1 HOSTCC=clang HOSTCXX=clang++ CC="ccache clang" LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip KCFLAGS="-Wno-error"
 
 jobs:
   build:
@@ -126,7 +126,7 @@ jobs:
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
-          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e AUTOFDO_CLANG -e LTO_CLANG -e LTO_CLANG_THIN -e TMPFS_XATTR
+          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e AUTOFDO_CLANG -e LTO_CLANG -e LTO_CLANG_THIN -e TMPFS_XATTR -e CFS_BANDWIDTH -e CGROUP_DEVICE -e CGROUP_PERF -e CGROUP_PIDS
 
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
@@ -146,6 +146,69 @@ jobs:
           ccache -z # 归零缓存统计
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
+
+      - name: ⚙️ 编译树外驱动 (Techpack OOT Modules)
+        run: |
+          cd ${{ env.WORKDIR }}
+          
+          # 1. 核心目录映射
+          export KERNEL_SRC="${{ env.KERNEL_DIR }}"
+          export OUT_DIR="${{ env.KERNEL_DIR }}/out"
+          QCOM_ARGS="BOARD_PLATFORM=pineapple TARGET_BOARD_PLATFORM=pineapple"
+          
+          # 2. 定义缺失的树外模块列表 (严格按照依赖顺序排列)
+          # 注意：基础模块(如 synx, mmrm)必须放在依赖它的模块(如 eva, camera)前面
+          EXT_MODULES="sm8650-modules/qcom/opensource/synx-kernel \
+                       sm8650-modules/qcom/opensource/securemsm-kernel \
+                       sm8650-modules/qcom/opensource/mmrm-driver \
+                       sm8650-modules/qcom/opensource/dsp-kernel \
+                       sm8650-modules/qcom/opensource/eva-kernel \
+                       sm8650-modules/qcom/opensource/mm-sys-kernel/ubwcp \
+                       sm8650-modules/qcom/opensource/spu-kernel \
+                       sm8650-modules/qcom/opensource/touch-drivers \
+                       sm8650-modules/qcom/opensource/video-driver \
+                       sm8650-modules/qcom/opensource/mm-drivers/hw_fence \
+                       sm8650-modules/qcom/opensource/mm-drivers/msm_ext_display \
+                       sm8650-modules/qcom/opensource/mm-drivers/sync_fence \
+                       sm8650-modules/qcom/opensource/graphics-kernel \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/mem \
+                       sm8650-modules/qcom/opensource/data-ipa \
+                       sm8650-modules/qcom/opensource/datarmnet/core \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/wlan \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/aps \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/offload \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/perf \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/perf_tether \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/sch \
+                       sm8650-modules/qcom/opensource/datarmnet-ext/shs \
+                       sm8650-modules/qcom/opensource/display-drivers \
+                       sm8650-modules/qcom/opensource/camera-kernel \
+                       sm8650-modules/qcom/opensource/wlan/platform \
+                       sm8650-modules/qcom/opensource/wlan/qcacld-3.0 \
+                       sm8650-modules/qcom/opensource/bt-kernel \
+                       sm8650-modules/qcom/opensource/audio-kernel
+                       
+          echo "🔍 准备就绪，开始执行官方 OOT 编译逻辑..."
+
+          # 3. 循环进入每个模块执行独立编译
+          for EXT_MOD in $EXT_MODULES; do
+            echo "========================================================"
+            echo " 🏗️ 正在编译: $EXT_MOD"
+            
+            # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
+            # 这行代码完美替代了复杂的依赖声明，只要前面编过的，后面的模块都能认出它的符号
+            ALL_SYMS=$(find "$OUT_DIR" "${{ env.WORKDIR }}/sm8650-modules" -name "Module.symvers" 2>/dev/null | tr '\n' ' ')
+            
+            # 核心编译指令 (精准复刻 build_module.sh 逻辑)
+            # -C 指向主内核工作树，M 指向树外模块绝对路径
+            make ${{ env.MAKE_ENV }} -C "$KERNEL_SRC" \
+                 M="${{ env.WORKDIR }}/$EXT_MOD" \
+                 O="$OUT_DIR" \
+                 KERNEL_SRC="$KERNEL_SRC" \
+                 KBUILD_EXTRA_SYMBOLS="$ALL_SYMS" \
+                 $QCOM_ARGS \
+                 modules -j$(nproc)
+          done
 
       - name: 🛠️ 精准提取主内核模块 (KO)
         run: |
