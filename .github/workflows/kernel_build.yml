@@ -161,7 +161,6 @@ jobs:
                        sm8650-modules/qcom/opensource/mm-sys-kernel/ubwcp \
                        sm8650-modules/qcom/opensource/spu-kernel \
                        sm8650-modules/qcom/opensource/touch-drivers \
-                       sm8650-modules/qcom/opensource/video-driver \
                        sm8650-modules/qcom/opensource/mm-drivers/hw_fence \
                        sm8650-modules/qcom/opensource/mm-drivers/msm_ext_display \
                        sm8650-modules/qcom/opensource/mm-drivers/sync_fence \
