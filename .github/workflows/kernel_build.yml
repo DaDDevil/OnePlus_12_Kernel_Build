@@ -149,8 +149,6 @@ jobs:
         run: |
           cd ${{ env.WORKDIR }}
 
-          # 临时禁用ccache
-          CACHE_CTRL="CCACHE_DISABLE=1"
           # 1. 核心目录映射
           export KERNEL_SRC="${{ env.KERNEL_DIR }}"
           export OUT_DIR="${{ env.KERNEL_DIR }}/out"
@@ -226,7 +224,7 @@ jobs:
             
             # 核心编译指令 (精准复刻 build_module.sh 逻辑)
             # -C 指向主内核工作树，M 指向树外模块绝对路径
-            eval "$CACHE_CTRL" make ${{ env.MAKE_ENV }} -C "$KERNEL_SRC" \
+            make ${{ env.MAKE_ENV }} -C "$KERNEL_SRC" \
                  M="${{ env.WORKDIR }}/$EXT_MOD" \
                  O="$OUT_DIR" \
                  KERNEL_SRC="$KERNEL_SRC" \
