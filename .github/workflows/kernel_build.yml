@@ -214,7 +214,7 @@ jobs:
             
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
             # 这行代码完美替代了复杂的依赖声明，只要前面编过的，后面的模块都能认出它的符号
-            ALL_SYMS=$(find "$OUT_DIR" "${{ env.WORKDIR }}/sm8650-modules" -name "Module.symvers" 2>/dev/null | tr '\n' ' ')
+            ALL_SYMS=$(find "$OUT_DIR" "${{ env.WORKDIR }}/sm8650-modules" -name "Module.symvers" 2>/dev/null | grep -v "^$OUT_DIR/Module.symvers$" | tr '\n' ' ')
             
             # 核心编译指令 (精准复刻 build_module.sh 逻辑)
             # -C 指向主内核工作树，M 指向树外模块绝对路径
