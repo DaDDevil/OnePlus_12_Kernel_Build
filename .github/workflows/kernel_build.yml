@@ -220,7 +220,7 @@ jobs:
             if [[ "$EXT_MOD" == *"mm-drivers"* ]]; then
                             PARENT_DIR=$(dirname "$MOD_PWD")
                             echo "⚠️ 侦测到 mm-drivers 子模块，强行将 $ROOT_VAR 回退至: $PARENT_DIR"
-                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$PARENT_DIR"
+                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD/../"
                         else
                             # 其他正常模块照旧
                             QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD KDIR=${{ env.KERNEL_DIR }}"
