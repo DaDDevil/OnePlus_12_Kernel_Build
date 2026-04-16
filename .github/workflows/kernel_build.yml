@@ -217,8 +217,13 @@ jobs:
                 echo "▶️ 常规驱动，全速编译..."
             fi
 
-            if ["$EXT_MOD" == "mm-drivers/*"]; then
-                QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD/../"
+            if [[ "$EXT_MOD" == *"mm-drivers"* ]]; then
+                            PARENT_DIR=$(dirname "$MOD_PWD")
+                            echo "⚠️ 侦测到 mm-drivers 子模块，强行将 $ROOT_VAR 回退至: $PARENT_DIR"
+                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$PARENT_DIR"
+                        else
+                            # 其他正常模块照旧
+                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD"
             fi
 
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
