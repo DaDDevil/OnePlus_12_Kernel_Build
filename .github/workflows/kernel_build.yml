@@ -217,6 +217,10 @@ jobs:
                 echo "▶️ 常规驱动，全速编译..."
             fi
 
+            if ["$EXT_MOD" == "mm-drivers/*"]; then
+                QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD/../"
+            fi
+
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
             # 这行代码完美替代了复杂的依赖声明，只要前面编过的，后面的模块都能认出它的符号
             ALL_SYMS=$(find "$OUT_DIR" "${{ env.WORKDIR }}/sm8650-modules" -name "Module.symvers" 2>/dev/null | grep -v "^$OUT_DIR/Module.symvers$" | tr '\n' ' ')
