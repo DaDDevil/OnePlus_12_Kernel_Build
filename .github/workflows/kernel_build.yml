@@ -223,7 +223,7 @@ jobs:
                             QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$PARENT_DIR"
                         else
                             # 其他正常模块照旧
-                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD"
+                            QCOM_ARGS="$QCOM_ARGS $ROOT_VAR=$MOD_PWD KDIR=${{ env.KERNEL_DIR }}"
             fi
 
             # 【黑科技】动态打捞当前已生成的所有 Module.symvers 
