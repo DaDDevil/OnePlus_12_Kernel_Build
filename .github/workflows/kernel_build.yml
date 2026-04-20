@@ -124,7 +124,7 @@ jobs:
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
-          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS
+          ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e CGROUP_DEVICE -e NETFILTER_XT_MATCH_ADDRTYPE -e CGROUP_PIDS -e CFS_BANDWIDTH -e NET_CLS_CGROUP -e IP_VS -e VXLAN -e MACVLAN -e CGROUP_HUGETLB
 
           # 应用并补全依赖
           #make ${{ env.MAKE_ENV }} olddefconfig
