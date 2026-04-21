@@ -36,7 +36,7 @@ build_mod() {
     
     # 执行编译 (自动带入 ALL_SYMVERS 中累积的所有符号)
     make $MAKE_ENV -C "$KERNEL_SRC" M="$(pwd)" \
-         KBUILD_EXTRA_SYMBOLS="$ALL_SYMVERS" "$@" modules -j8
+         KBUILD_EXTRA_SYMBOLS="$ALL_SYMVERS" "$@" modules -j$(nproc)
     
     # 编译成功后，将生成的 Module.symvers 路径存入变量，供后续模块使用
     if [ -f "Module.symvers" ]; then
