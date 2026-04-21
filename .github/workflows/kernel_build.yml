@@ -33,7 +33,7 @@ jobs:
       - name: 设置虚拟内存 (Swap)
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 4
+          swap-size-gb: 16
           
       - name: 安装环境依赖 (带 ccache)
         run: |
@@ -84,13 +84,11 @@ jobs:
       - name: 源码级修复与“上帝模式”破解
         run: |
           cd ${{ env.KERNEL_DIR }}
-          # 1. 修复 Tracepoint 相对路径问题
-          sed -i '133s/$/ \\/; 133a \                     -I$(srctree)\/$(src)' scripts/Makefile.lib
-          # 2. 洗白内核版本号后缀
+          # 1. 洗白内核版本号后缀
           sed -i 's/-dirty//g' scripts/setlocalversion
           sed -i 's/CONFIG_LOG_BUF_SHIFT=17/CONFIG_LOG_BUF_SHIFT=20/g' arch/arm64/configs/vendor/oplus/pineapple_GKI.config
           
-          # 3. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
+          # 2. 终极签名破解：使用 Python 精准替换 module_sig_check 函数
           cat << 'EOF' > patch_sig.py
           import re
           with open('kernel/module/signing.c', 'r') as f:
@@ -109,12 +107,10 @@ jobs:
       - name: 🛠️ 植入 Docker 终极修复补丁
         run: |
           cd ${{ env.KERNEL_DIR }}
-          #wget https://github.com/aled99/op12-kernel/commit/1cc769fcad3ba70f2f69032f5378c235b44de45c.patch -O yh.patch
-          #wget https://github.com/aled99/op12-kernel/commit/3b549102f82ff6e231b2d88701c21df71ba22f04.patch -O autofdo.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
           wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
+          # wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
+          # wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
           for i in *.patch; do patch -p1 < "$i"; done
       
       - name: 配置内核并注入 Docker 选项
@@ -123,11 +119,9 @@ jobs:
           # 基础配置
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e MODULE_SIG_PROTECT -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
+          ./scripts/config --file out/.config -e PID_NS -e USER_NS -e DEVTMPFS -e SYSVIPC -e BRIDGE_NETFILTER -e NF_CONNTRACK_NETLINK -e FW_LOADER_COMPRESS -e IKCONFIG_PROC -e IKCONFIG -e IP6_NF_NAT -e IP6_NF_TARGET_MASQUERADE
+          ./scripts/config --file out/.cknfig -e BRIDGE_VLAN_FILTERING -e NFT_FIB_IPV4 -e NFT_FIB_IPV6 -e RT_GROUP_SCHED -e HUGETLBFS -e HUGETLB_PAGE
           ./scripts/config --file out/.config -e BTRFS_FS_POSIX_ACL -e BTRFS_FS -e NETFILTER_XT_MATCH_IPVS -e CGROUP_DEVICE -e NETFILTER_XT_MATCH_ADDRTYPE -e CGROUP_PIDS -e CFS_BANDWIDTH -e NET_CLS_CGROUP -e IP_VS -e VXLAN -e MACVLAN -e CGROUP_HUGETLB
-
-          # 应用并补全依赖
-          #make ${{ env.MAKE_ENV }} olddefconfig
           echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 开启透明大页核心支持
           ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
@@ -135,6 +129,8 @@ jobs:
           ./scripts/config --file out/.config -d TRANSPARENT_HUGEPAGE_ALWAYS -e TRANSPARENT_HUGEPAGE_MADVISE
           # 确保共享内存 (shmem) 支持大页，这对 crosvm 极其重要
           ./scripts/config --file out/.config -e TRANSPARENT_HUGE_PAGECACHE
+          # 应用并补全依赖
+          make ${{ env.MAKE_ENV }} olddefconfig
           
       - name: 开始编译内核 (火力全开)
         run: |
@@ -143,9 +139,18 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
+      - name: 🫪 编译供应商驱动模块
+        run: |
+          cd ${{ env.WORKDIR }}/sm8650-modules
+          wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/build_modules.sh
+          export KERNEL_SRC=${{ env.KERNEL_DIR }}
+          chmod +x build_modules.sh
+          echo "当前工作目录：$(pwd),开启编译所有供应商驱动模块！"
+          ./build_modules.sh
+
       - name: 🛠️ 精准提取主内核模块 (KO)
         run: |
-          cd ${{ env.KERNEL_DIR }}
+          cd ${{ env.WORKDIR }}
           # 1. 定义一个干净的存放点
           KO_STAGING="${{ env.WORKDIR }}/main_kernel_ko"
           mkdir -p "$KO_STAGING"
@@ -155,7 +160,7 @@ jobs:
           # 2. 直接从 out 目录中提取真正的内核模块
           # 排除掉 vendor 仓库（如果你在里面建了软链接）和中间 obj 目录的干扰
           # -type f 确保只找文件，不找符号链接
-          find out -name "*.ko" -type f | while read -r file; do
+          find . -name "*.ko" -type f | while read -r file; do
               echo "📦 捡到模块: $(basename "$file")"
               cp -f "$file" "$KO_STAGING/"
           done
@@ -169,7 +174,7 @@ jobs:
 
           # 5. 压缩成独立的模块包
           cd "$KO_STAGING"
-          cp ${{ env.KERNEL_DIR }}/out/vmlinux .
+          cp ${{ env.KERNEL_DIR }}/out/.config .
           zip -r9y ${{ env.WORKDIR }}/main_kernel_ko.zip .
           
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
