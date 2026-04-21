@@ -143,10 +143,15 @@ jobs:
         run: |
           cd ${{ env.WORKDIR }}/sm8650-modules
           wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/build_modules.sh
-          export KERNEL_SRC=${{ env.KERNEL_DIR }}
-          export MAKE_ENV=${{ env.MAKE_ENV }}
+          
+          # 💡 核心修改：将 KERNEL_SRC 指向编译产物所在的 out 目录
+          export KERNEL_SRC=${{ env.KERNEL_DIR }}/out
+          
+          # 💡 核心修改：覆盖相对路径的 O=out，防止它去模块子目录找配置
+          export MAKE_ENV="${{ env.MAKE_ENV }} O=${{ env.KERNEL_DIR }}/out"
+          
           chmod +x build_modules.sh
-          echo "当前工作目录：$(pwd),开启编译所有供应商驱动模块！"
+          echo "当前工作目录：$(pwd), 开启编译所有供应商驱动模块！"
           ./build_modules.sh
 
       - name: 🛠️ 精准提取主内核模块 (KO)
