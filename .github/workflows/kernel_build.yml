@@ -144,6 +144,7 @@ jobs:
           cd ${{ env.WORKDIR }}/sm8650-modules
           wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/build_modules.sh
           export KERNEL_SRC=${{ env.KERNEL_DIR }}
+          export MAKE_ENV=${{ env.MAKE_ENV }}
           chmod +x build_modules.sh
           echo "当前工作目录：$(pwd),开启编译所有供应商驱动模块！"
           ./build_modules.sh
