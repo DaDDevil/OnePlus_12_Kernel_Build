@@ -102,15 +102,6 @@ jobs:
           rm -rf ./android/abi_gki_protected_exports_*
           rm -rf ./android/abi_gki_aarch64_qcom
           rm -rf ./android/abi_gki_aarch64_oplus
-
-      - name: 🛠️ 植入 Docker 终极修复补丁
-        run: |
-          cd ${{ env.KERNEL_DIR }}
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/01.6.1%2B_disable_crc_checks_for_lkms.patch
-          #wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch
-          # wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/03.5.15%2B_use_android_abi_padding_for_posix_mqueue.patch
-          # wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/04.use_android_abi_padding_for_sysvipc_task_struct.patch
-          for i in *.patch; do patch -p1 < "$i"; done
       
       - name: 配置内核并注入 Docker 选项
         run: |
