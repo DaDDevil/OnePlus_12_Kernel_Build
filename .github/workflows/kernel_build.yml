@@ -102,8 +102,8 @@ jobs:
           rm -rf ./android/abi_gki_protected_exports_*
           rm -rf ./android/abi_gki_aarch64_qcom
           rm -rf ./android/abi_gki_aarch64_oplus
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_3_4_5.patch
-          patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_3_4_5.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+          patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
       
       - name: 配置内核并注入 Docker 选项
         run: |
