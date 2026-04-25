@@ -76,10 +76,10 @@ jobs:
           git clone --depth=1 ${{ github.event.inputs.kernel_devicetrees_repo }} sm8650-devicetrees
           echo "✅ 源码拉取完毕，平级目录结构就绪"
 
-      - name: 安装 KernelSU
+      - name: 安装 KernelSU Next
         run: |
           cd ${{ env.KERNEL_DIR }}
-          curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
 
       - name: 修改源码 && 应用补丁
         run: |
@@ -87,8 +87,8 @@ jobs:
           # 1. 洗白内核版本号后缀
           sed -i 's/-dirty//g' scripts/setlocalversion
           rm -rf ./android/abi_gki_protected_exports_*
-          # wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
-          # patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
+          patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
       
       - name: 配置内核并注入 Docker 选项
         run: |
@@ -96,7 +96,7 @@ jobs:
           # 基础配置
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN -e BRIDGE_NETFILTER -e USER_NS
+          ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN -e USER_NS -e SYSVIPC
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 开启透明大页核心支持
           # ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
