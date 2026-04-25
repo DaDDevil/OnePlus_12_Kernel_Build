@@ -96,7 +96,7 @@ jobs:
           # 基础配置
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
-          ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BRIDGE_NETFILTER -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN
+          ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 开启透明大页核心支持
           # ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
