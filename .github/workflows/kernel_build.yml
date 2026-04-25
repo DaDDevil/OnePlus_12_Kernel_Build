@@ -101,7 +101,7 @@ jobs:
           ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN -e USER_NS -e SYSVIPC -e IP6_NF_TARGET_MASQUERADE -e NETFILTER_XT_MATCH_ADDRTYPE
           # ./scripts/config --file out/.config -e NETFILTER_XT_MATCH_IPVS -e NF_TABLES -e NFT_NAT -e NFT_MASQ
           # Network BBRv3
-          ./scripts/config --file out/.config -e IP_NF_TARGET_TTL -e NET_SCH_FQ -e TCP_CONG_ADVANCED -e DEFAULT_BBR -e TCP_CONG_BBR -e TCP_CONG_WESTWOOD -e IP6_NF_TARGET_HL -e IP6_NF_MATCH_HL
+          ./scripts/config --file out/.config -e TCP_CONG_BBR -e INET_ECN -e HIGH_RES_TIMERS
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 开启透明大页核心支持
           # ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
