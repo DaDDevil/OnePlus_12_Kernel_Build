@@ -87,10 +87,10 @@ jobs:
           # 1. 洗白内核版本号后缀
           sed -i 's/-dirty//g' scripts/setlocalversion
           rm -rf ./android/abi_gki_protected_exports_*
-          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_3_4_5.patch
+          wget https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/refs/heads/main/Documentation/resources/kernel-patches/GKI/below-kernel-6.12/001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
           # wget https://raw.githubusercontent.com/ahmed-alnassif/GKI-Duchamp/refs/heads/dev/kernel-patches/bbrv3/bbrv3.patch
           # patch -p1 < bbrv3.patch
-          patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_3_4_5.patch
+          patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
       
       - name: 配置内核并注入 Docker 选项
         run: |
