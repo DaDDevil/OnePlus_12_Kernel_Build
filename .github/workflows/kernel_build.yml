@@ -102,7 +102,7 @@ jobs:
           # 注入 Docker/LXC 所需配置
           ./scripts/config --file out/.config -e PID_NS -e DEVTMPFS -e FW_LOADER_COMPRESS -e BTRFS_FS -e BTRFS_FS_POSIX_ACL -e LTO_CLANG -e LTO_CLANG_THIN -e USER_NS -e SYSVIPC -e IP6_NF_TARGET_MASQUERADE -e NETFILTER_XT_MATCH_ADDRTYPE
           # Network BBRv3
-          ./scripts/config --file out/.config -e CONFIG_HZ_300 -e TCP_CONG_BBR -e NET_9P -e NET_SCH_FQ
+          ./scripts/config --file out/.config -e CONFIG_HZ_300 -e TCP_CONG_ADVANCED -e TCP_CONG_BBR -e NET_9P -e NET_SCH_FQ
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 开启透明大页核心支持
           # ./scripts/config --file out/.config -e TRANSPARENT_HUGEPAGE
