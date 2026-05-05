@@ -129,23 +129,40 @@ jobs:
           chmod +x *.py
           python build_modules_new.py
 
+      - name: 🚚 提取、精简并优化产物
+        run: |
+          cd ${{ env.KERNEL_DIR }}
+          # 创建输出暂存区
+          mkdir -p staging/modules 
+          # 1. 提取内核 Image
+          cp out/arch/arm64/boot/Image staging/ 
+          # 2. 自动递归寻找所有 .ko 并扁平化移动
+          find . -name "*.ko" -exec cp {} staging/modules/ \;  
+          # 3. 去除 Debug 日志与调试符号 (降维打击)
+          # 使用 llvm-strip --strip-debug 可以极大地减小体积，并移除绝大多数调试日志信息
+          find staging/modules/ -name "*.ko" -exec llvm-strip --strip-debug {} +
+          zip ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip staging/*
+
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
+          echo "BUILD_TIME=$(date +'%Y%m%d_%H%M')" >> $GITHUB_ENV
           git clone --depth=1 https://github.com/cctv18/AnyKernel3.git AnyKernel3
-      
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image ./AnyKernel3/
-      
-          # 2. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
+          # 2. 拷贝内核.config
+          cp ${{ env.KERNEL_DIR }}/out/.config ./AnyKernel3
+          # 3. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
           cd ./AnyKernel3
-          zip -r9y ../OnePlus12-Kernel-AK3.zip *
+          # 4. 压缩内核刷机包
+          zip -r9y ../OnePlus12_Kernel_${{ env.BUILD_TIME }}.zip *
 
       - name: 🚀 发布最终成品
         uses: actions/upload-artifact@v4
         with:
           name: OnePlus12-Kernel-Build
           path: |
-            ${{ env.WORKDIR }}/OnePlus12-Kernel-AK3.zip
+            ${{ env.WORKDIR }}/OnePlus12_Kernel_${{ env.BUILD_TIME }}.zip
+            ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
