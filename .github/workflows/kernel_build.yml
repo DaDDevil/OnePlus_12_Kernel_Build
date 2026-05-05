@@ -105,12 +105,12 @@ jobs:
           ./scripts/config --file out/.config -e CONFIG_HZ_300 -e TCP_CONG_ADVANCED -e TCP_CONG_BBR -e DEFAULT_BBR -e ZRAM_DEF_COMP_LZ4 -d ZRAM_DEF_COMP_LZORLE -e ZRAM_WRITEBACK -e HIBERNATION_COMP_LZ4 -d HIBERNATION_COMP_LZO
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 启用完整的命名空间和 Cgroup 支持
-          ./scripts/config --enable CONFIG_NAMESPACES
-          ./scripts/config --enable CONFIG_USER_NS
-          ./scripts/config --enable CONFIG_CGROUPS
-          ./scripts/config --enable CONFIG_CGROUP_FREEZER
-          ./scripts/config --enable CONFIG_MACVLAN
-          ./scripts/config --enable CONFIG_VETH
+          ./scripts/config --file out/.config --enable CONFIG_NAMESPACES
+          ./scripts/config --file out/.config --enable CONFIG_USER_NS
+          ./scripts/config --file out/.config --enable CONFIG_CGROUPS
+          ./scripts/config --file out/.config --enable CONFIG_CGROUP_FREEZER
+          ./scripts/config --file out/.config --enable CONFIG_MACVLAN
+          ./scripts/config --file out/.config --enable CONFIG_VETH
           # 应用并补全依赖
           make ${{ env.MAKE_ENV }} olddefconfig
           
