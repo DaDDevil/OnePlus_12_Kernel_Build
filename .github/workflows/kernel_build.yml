@@ -120,6 +120,14 @@ jobs:
           make ${{ env.MAKE_ENV }} -j$(nproc)
           ccache -s # 打印缓存命中率
 
+      - name: 开始编译内核模块
+        run: |
+          cd ${{ env.WORKDIR }}/sm8650-modules
+          export KERNEL_SRC="${{ env.KERNEL_DIR }}"
+          wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/build_modules_new.py
+          chmod +x *.py
+          python build_modules_new.py
+
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
           cd ${{ env.WORKDIR }}
