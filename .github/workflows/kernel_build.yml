@@ -138,10 +138,10 @@ jobs:
           # 1. 提取内核 Image
           cp out/arch/arm64/boot/Image staging/ 
           # 2. 自动递归寻找所有 .ko 并扁平化移动
-          find . -name "*.ko" -exec cp {} staging/modules/ \;  
+          find . -name "*.ko" -exec cp {} staging/modules/
           # 3. 去除 Debug 日志与调试符号 (降维打击)
           # 使用 llvm-strip --strip-debug 可以极大地减小体积，并移除绝大多数调试日志信息
-          find staging/modules/ -name "*.ko" -exec llvm-strip --strip-debug {} +
+          find staging/modules/ -name "*.ko" -exec ${{ env.CLANG_DIR }}/bin/llvm-strip --strip-debug {} +
           zip ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip staging/*
 
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
