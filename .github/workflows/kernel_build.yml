@@ -163,6 +163,5 @@ jobs:
         with:
           name: OnePlus12-Kernel-Build
           path: |
-            ${{ env.WORKDIR }}/OnePlus12_Kernel_${{ env.BUILD_TIME }}.zip
-            ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip
+            ${{ env.WORKDIR }}/*.zip
           compression-level: 0 # 已经是zip了，不要再让 Action 费力压缩
