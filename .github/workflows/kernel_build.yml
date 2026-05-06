@@ -133,16 +133,39 @@ jobs:
       - name: 🚚 提取、精简并优化产物
         run: |
           cd ${{ env.KERNEL_DIR }}
-          # 创建输出暂存区
+          
+          # 1. 创建输出暂存区
+          echo "📂 建立暂存目录 staging/modules..."
           mkdir -p staging/modules 
-          # 1. 提取内核 Image
-          cp out/arch/arm64/boot/Image staging/ 
-          # 2. 自动递归寻找所有 .ko 并扁平化移动
-          find ${{ env.WORKDIR }} -name "*.ko" -type f -exec cp -t staging/modules/ {} +
-          # 3. 去除 Debug 日志与调试符号 (降维打击)
-          # 使用 llvm-strip --strip-debug 可以极大地减小体积，并移除绝大多数调试日志信息
+          
+          # 2. 自动递归寻找所有 .ko 并扁平化移动 (已修复 cp 语法致命 BUG)
+          # 注意这里加了 -t 参数，意思是将 staging/modules/ 指定为目标目录，这样 {} + 追加的文件列表才合法
+          echo "🔍 开始全盘搜集 .ko 模块文件..."
+          find ${{ env.WORKDIR }} -name "*.ko" -exec cp -t staging/modules/ {} +
+          
+          # 3. 🛡️ 核心验证机制：物理清点资产
+          KO_COUNT=$(find staging/modules/ -name "*.ko" | wc -l)
+          echo "📊 统计到 $KO_COUNT 个 .ko 文件。"
+          
+          if [ "$KO_COUNT" -eq 0 ]; then
+            echo "❌ 致命错误：未能提取到任何 .ko 文件！流水线在此阻断。"
+            echo "👉 请检查上一步编译阶段是否真的生成了外置模块，或检查路径配置。"
+            exit 1
+          else
+            echo "✅ 成功捕获 $KO_COUNT 个驱动模块，允许放行！"
+          fi
+          
+          # 4. 去除 Debug 日志与调试符号 (降维打击)
+          echo "🪚 开始使用 llvm-strip 剥离调试符号..."
           find staging/modules/ -name "*.ko" -exec ${{ env.CLANG_DIR }}/bin/llvm-strip --strip-debug {} +
-          zip ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip staging/*
+          
+          # 5. 打包产物 (优化打包层级)
+          echo "📦 开始生成带时间戳的压缩包..."
+          # 先进入 staging 目录打包，这样解压出来的包内结构就是干净的 modules/ 目录，没有冗余的上级路径
+          cd staging
+          zip -r ${{ env.WORKDIR }}/OnePlus12_Kernel_modules_${{ env.BUILD_TIME }}.zip modules/
+          echo "🎉 产物提取与打包彻底完成！"
+
 
       - name: 制作 AnyKernel3 刷机包 (逻辑重构)
         run: |
@@ -151,7 +174,7 @@ jobs:
           # 1. 拷贝内核到 AK3
           cp ${{ env.KERNEL_DIR }}/out/arch/arm64/boot/Image ./AnyKernel3/
           # 2. 拷贝内核.config
-          cp ${{ env.KERNEL_DIR }}/out/.config ./AnyKernel3
+          cp ${{ env.KERNEL_DIR }}/out/.config ./AnyKernel3/
           # 3. 删除无用文件并规范打包（-y 保留符号链接，非常重要）
           rm -rf ./AnyKernel3/.git README.md
           cd ./AnyKernel3
