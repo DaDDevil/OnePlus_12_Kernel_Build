@@ -106,7 +106,8 @@ jobs:
           ./scripts/config --file out/.config -e HZ_300 -e TCP_CONG_ADVANCED -e TCP_CONG_BBR -e DEFAULT_BBR -e ZRAM_DEF_COMP_LZ4 -d ZRAM_DEF_COMP_LZORLE -e ZRAM_WRITEBACK -e HIBERNATION_COMP_LZ4 -d HIBERNATION_COMP_LZO
           # echo "[*] 正在注射 透明巨大页 (THP) 续命血清..."
           # 启用完整的命名空间和 Cgroup 支持
-          ./scripts/config --file out/.config -e MACVLAN -e CGROUP_DEVICE -e CGROUP_PIDS
+          ./scripts/config --file out/.config -e MACVLAN -e CGROUP_DEVICE -e CGROUP_PIDS -e BRIDGE_NETFILTER -e IP6_NF_TARGET_MASQUERADE -e NETFILTER_XT_MATCH_IPVS -e IP6_NF_NAT -e CFS_BANDWIDTH -e NFT_NAT -e NF_TABLES -e NFT_CT
+          ./scripts/config --file out/.config -e NFT_FIB -e NFT_FIB_IPV6 -e NFT_FIB_IPV4
           # 应用并补全依赖
           make ${{ env.MAKE_ENV }} olddefconfig
           
