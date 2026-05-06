@@ -99,7 +99,8 @@ jobs:
         run: |
           cd ${{ env.KERNEL_DIR }}
           # 应用config补丁文件
-          
+          wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/vendor_config_patch.patch
+          patch -p1 < vendor_config_patch.patch
           # 基础配置
           make ${{ env.MAKE_ENV }} gki_defconfig vendor/pineapple_GKI.config vendor/oplus/pineapple_GKI.config
           # 注入 Docker/LXC 所需配置
