@@ -1,8 +1,12 @@
-diff --git a/arch/arm64/configs/vendor/oplus/pineapple_GKI.config b/arch/arm64/configs/vendor/oplus/pineapple_GKI.config
-index 67a45bb0a..20d0f55fe 100644
+diff --git a/arch/arm64/configs/vendor/oplus/pineapple_GKI
+.config b/arch/arm64/configs/vendor/oplus/pineapple_GKI.confi
+g
+index 67a45bb0a..5bb949307 100644
 --- a/arch/arm64/configs/vendor/oplus/pineapple_GKI.config
+
 +++ b/arch/arm64/configs/vendor/oplus/pineapple_GKI.config
-@@ -110,3 +110,50 @@ CONFIG_UFSHID_POC=y
+
+@@ -110,3 +110,52 @@ CONFIG_UFSHID_POC=y
  CONFIG_UFSTW=y
  CONFIG_UFSTW_BOOT_ENABLED=y
  CONFIG_UFSTW_IGNORE_GUARANTEE_BIT=y
