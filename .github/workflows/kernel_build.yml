@@ -60,7 +60,7 @@ jobs:
       - name: 下载并配置 Clang 编译器
         run: |
           cd ${{ env.WORKDIR }}
-          wget -q https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15071444/clang-r596125.tar.gz
+          wget -q https://github.com/bachnxuan/aosp_clang_mirror/releases/download/clang-r596125-15241605/clang-r596125.tar.gz
           mkdir -p ${{ env.CLANG_DIR }}
           tar -zxf clang-r596125.tar.gz -C ${{ env.CLANG_DIR }}
           # 直接将 clang 的 bin 目录和 ccache 注入环境变量
@@ -94,15 +94,10 @@ jobs:
           wget https://raw.githubusercontent.com/DaDDevil/OnePlus_12_Kernel_Build/refs/heads/main/01.6.1%2B_disable_crc_checks_for_lkms.patch
           # BBRv3 补丁
           wget https://raw.githubusercontent.com/WildKernels/kernel_patches/refs/heads/main/bbr/bbrv3-android14-6.1.patch
-          # NTsync补丁
-          wget https://raw.githubusercontent.com/WildKernels/kernel_patches/refs/heads/main/common/ntsync/ntsync_compat_android14-6.1.patch
-          wget https://raw.githubusercontent.com/WildKernels/kernel_patches/refs/heads/main/common/ntsync/ntsync_base.patch
           # 应用内核补丁
           patch -p1 < bbrv3-android14-6.1.patch
           patch -p1 < 001.GKI-below-6.12-fix_sysvipc_kabi_6_7_8.patch
           patch -p1 < 01.6.1+_disable_crc_checks_for_lkms.patch
-          patch -p1 < ntsync_compat_android14-6.1.patch
-          patch -p1 < ntsync_base.patch
       
       - name: 配置内核并注入 Docker 选项
         run: |
