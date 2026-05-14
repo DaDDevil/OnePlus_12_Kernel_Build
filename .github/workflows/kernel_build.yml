@@ -80,7 +80,7 @@ jobs:
       - name: 安装 KernelSU Next
         run: |
           cd ${{ env.KERNEL_DIR }}
-          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+          # curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
 
       - name: 修改源码 && 应用补丁
         run: |
