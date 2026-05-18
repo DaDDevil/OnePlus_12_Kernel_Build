@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <remote name="DaDDevil" fetch="https://github.com/DaDDevil" />
+    <remote name="op12_Development" fetch="https://github.com/OnePlus-12-Development" />
+
+    <project path="device/oneplus/waffle" name="DaDDevil/android_device_oneplus_waffle" remote="DaDDevil" revision="main" />
+    
+    <project path="device/oneplus/sm8650-common" name="op12_Development/android_device_oneplus_sm8650-common" remote="op12_Development" revision="lineage-23.2" />
+
+    <project path="kernel/oneplus/sm8650" name="DaDDevil/android_kernel_oneplus_sm8650" remote="DaDDevil" revision="lindroid" />
+
+    <project path="kernel/oneplus/sm8650-modules" name="op12_Development/android_kernel_oneplus_sm8650-modules" remote="op12_Development" revision="lineage-23.2" />
+    
+    <project path="kernel/oneplus/sm8650-devicetrees" name="op12_Development/android_kernel_oneplus_sm8650-devicetrees" remote="op12_Development" revision="lineage-23.2" />
+    
+    <project patch="vendor/oneplus/sm8650-common" name="op12_Development/proprietary_vendor_oneplus_sm8650-common" remote="op12_Development" revision="lineage-23.2" />
+    
+    <project path="vendor/oneplus/waffle" name="op12_Development/proprietary_vendor_oneplus_waffle" remote="op12_Development" revision="lineage-23.2" />  
+</manifest>
