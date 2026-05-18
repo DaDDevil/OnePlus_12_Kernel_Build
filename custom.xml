@@ -13,7 +13,7 @@
     
     <project path="kernel/oneplus/sm8650-devicetrees" name="android_kernel_oneplus_sm8650-devicetrees" remote="op12_Development" revision="lineage-23.2" />
     
-    <project patch="vendor/oneplus/sm8650-common" name="proprietary_vendor_oneplus_sm8650-common" remote="op12_Development" revision="lineage-23.2" />
+    <project path="vendor/oneplus/sm8650-common" name="proprietary_vendor_oneplus_sm8650-common" remote="op12_Development" revision="lineage-23.2" />
     
     <project path="vendor/oneplus/waffle" name="proprietary_vendor_oneplus_waffle" remote="op12_Development" revision="lineage-23.2" />  
 </manifest>
